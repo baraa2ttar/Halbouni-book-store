@@ -2,7 +2,7 @@ import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/helpers/validation_service.dart';
 import 'package:get/get.dart';
 
-class SignUpController extends GetxController {
+class AuthController extends GetxController {
   // Form controllers
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
@@ -24,6 +24,7 @@ class SignUpController extends GetxController {
 
   // Terms and conditions
   final RxBool agreeToTerms = false.obs;
+  final RxBool saveUsersPassword = true.obs;
 
   @override
   void onClose() {
@@ -47,7 +48,9 @@ class SignUpController extends GetxController {
   void toggleTermsAgreement() {
     agreeToTerms.toggle();
   }
-
+  void toggleSavingUsersPassword() {
+    saveUsersPassword.toggle();
+  }
   String? validateFirstName(String? value) {
     return ValidationService.requiredField(value, fieldName: 'First name');
   }

@@ -1,6 +1,7 @@
+import 'package:adv/view/auth/screens/widgets/buildFormField.dart';
 import 'package:flutter/material.dart';
 import 'package:adv/core/exports/ui_exports.dart';
-import 'package:adv/view/auth/controller/signup_controller.dart';
+import 'package:adv/view/auth/controller/auth_controller.dart';
 import 'package:adv/view/onboarding/screens/widgets/card_googl.dart';
 
 class SignUpScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SignUpController());
+    final controller = Get.put(AuthController());
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -89,14 +90,14 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFormFields(SignUpController controller) {
+  Widget _buildFormFields(AuthController controller) {
     return Column(
       children: [
         // Name Fields
         Row(
           children: [
             Expanded(
-              child: _buildTextField(
+              child: buildTextField(
                 controller: controller.firstNameController,
                 label: 'First Name',
                 validator: controller.validateFirstName,
@@ -105,7 +106,7 @@ class SignUpScreen extends StatelessWidget {
             ),
             SizedBox(width: 16),
             Expanded(
-              child: _buildTextField(
+              child: buildTextField(
                 controller: controller.lastNameController,
                 label: 'Last Name',
                 validator: controller.validateLastName,
@@ -118,7 +119,7 @@ class SignUpScreen extends StatelessWidget {
         SizedBox(height: 16),
 
         // Email Field
-        _buildTextField(
+        buildTextField(
           controller: controller.emailController,
           label: 'Email Address',
           validator: controller.validateEmail,
@@ -129,7 +130,7 @@ class SignUpScreen extends StatelessWidget {
         SizedBox(height: 16),
 
         // Phone Field
-        _buildTextField(
+        buildTextField(
           controller: controller.phoneController,
           label: 'Phone Number',
           validator: controller.validatePhone,
@@ -141,7 +142,7 @@ class SignUpScreen extends StatelessWidget {
 
         // Password Field
         Obx(
-          () => _buildTextField(
+          () => buildTextField(
             controller: controller.passwordController,
             label: 'Password',
             validator: controller.validatePassword,
@@ -163,7 +164,7 @@ class SignUpScreen extends StatelessWidget {
 
         // Confirm Password Field
         Obx(
-          () => _buildTextField(
+          () => buildTextField(
             controller: controller.confirmPasswordController,
             label: 'Confirm Password',
             validator: controller.validateConfirmPassword,
@@ -184,52 +185,9 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String? Function(String?) validator,
-    required IconData icon,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-    Widget? suffixIcon,
-  }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.grey[600]),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColor.primaryColor, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-    );
-  }
 
-  Widget _buildTermsAndConditions(SignUpController controller) {
+
+  Widget _buildTermsAndConditions(AuthController controller) {
     return Obx(
       () => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +234,7 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSignUpButton(SignUpController controller) {
+  Widget _buildSignUpButton(AuthController controller) {
     return Obx(
       () => CardGoogle(
         label:
@@ -289,7 +247,7 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginLink(SignUpController controller) {
+  Widget _buildLoginLink(AuthController controller) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
