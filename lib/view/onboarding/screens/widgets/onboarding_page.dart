@@ -51,7 +51,7 @@ class OnboardingPage extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.w),
                     child: Text(
-                      AppStrings.onboardingDescription,
+                      "  ",
                       style:
                           AppTextStyles.subtitle(context).copyWith(height: 1.6),
                       textAlign: TextAlign.center,
@@ -60,7 +60,7 @@ class OnboardingPage extends StatelessWidget {
                   SizedBox(height: 40.h),
                   AppButton(
                     borderRadius: 10.r,
-                    buttonText: AppStrings.getStarted,
+                    buttonText: "getStarted",
                     buttonHeight: 54.h,
                     buttonWidth: 295.w,
                     textStyle: AppTextStyles.buttonText(context),
@@ -70,7 +70,7 @@ class OnboardingPage extends StatelessWidget {
                   TextButton(
                       onPressed: onTapSkip,
                       child: Text(
-                        AppStrings.skip,
+                        "skip",
                         style: AppTextStyles.subtitle(context)
                             .copyWith(color: AppColor.darkGreyColor),
                       )),
