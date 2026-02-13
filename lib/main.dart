@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
             builder: (context, child) => responsiveBuilder(context, child),
-            initialRoute: Routes.signIn,
+            initialRoute: Routes.splash,
             getPages: appPages,
           ),
         );
