@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
           value: SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
           child: GetMaterialApp(
             debugShowCheckedModeBanner: false,
+
             title: 'Graduation',
             theme: ThemeData(
               scaffoldBackgroundColor: AppColor.whiteColor,
