@@ -63,7 +63,7 @@ class OnboardingPage extends StatelessWidget {
                     buttonText: "getStarted",
                     buttonHeight: 54.h,
                     buttonWidth: 295.w,
-                    textStyle: AppTextStyles.buttonText(context),
+                    textStyle: AppTextStyles.headline(context),
                     onTap: onTapNext,
                   ),
                   SizedBox(height: 16.h),

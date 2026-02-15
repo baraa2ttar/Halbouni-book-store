@@ -9,9 +9,6 @@ export 'package:get/get.dart';
 export 'package:adv/widgets/app_background.dart';
 export 'package:adv/widgets/app_bottom_sheet.dart';
 export 'package:adv/widgets/app_button.dart';
-export 'package:adv/widgets/app_text_form_field.dart';
-export 'package:adv/widgets/app_top_bar.dart';
-
 export 'package:adv/core/constant/app_constants.dart';
 export 'package:adv/core/constant/app_strings.dart';
 export 'package:percent_indicator/linear_percent_indicator.dart';
