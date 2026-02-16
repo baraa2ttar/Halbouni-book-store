@@ -12,20 +12,61 @@ class HomeViewBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-        const CustomAppBar(),
-      // const CustomListViewItem(),
-        FeaturedBooksListView(),
-        const SizedBox(height: 40,),
-        Text("Explore by Genre",
-        style: AppTextStyles.titleText(context),
-        )
-
-      ]),
+        children: [
+          const CustomAppBar(),
+          // const CustomListViewItem(),
+          FeaturedBooksListView(),
+          const SizedBox(height: 40),
+          Text("Explore by Genre", style: AppTextStyles.titleText(context)),
+          SizedBox(height: 20),
+          CustomDetailedBookItem(),
+        ],
+      ),
     );
+  }
+}
 
+class CustomDetailedBookItem extends StatelessWidget {
+  const CustomDetailedBookItem({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 125,
+      child: Row(
+        children: [
+          AspectRatio(
+            aspectRatio: 2.5 / 4,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  image: Image.asset(AppAssets.book3).image,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 30),
+
+          Column(
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width *  0.5,
+                child: const Text(
+                  "Legende de Paul thibault",
+                  style: AppTextStyles.textStyle20,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

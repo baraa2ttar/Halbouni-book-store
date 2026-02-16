@@ -2,6 +2,8 @@ import 'package:adv/core/constant/app_colors.dart';
 import 'package:adv/core/extensions/size_extensions.dart';
 import 'package:flutter/material.dart';
 
+import 'app_constants.dart';
+
 class AppTextStyles {
   static TextStyle headline(BuildContext context) => TextStyle(
       fontWeight: FontWeight.w500,
@@ -46,11 +48,39 @@ class AppTextStyles {
       color: AppColor.darkGreyColor,
       fontSize: context.sp(12));
 
+  static TextStyle subtitleS20(BuildContext context) => TextStyle(
+      fontWeight: FontWeight.w400,
+      color: AppColor.darkGreyColor,
+      fontFamily: kGtSectraFine,
+      fontSize: context.sp(20));
 
 
   static TextStyle CardTitle(BuildContext context) => TextStyle(
       fontWeight: FontWeight.w500,
       color: AppColor.darkGreyColor,
       fontSize: context.sp(14));
+
+//////////////////////////////////
+
+  static const textStyle20 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.normal,
+  );
+  static const textStyle30 = TextStyle(
+    fontSize: 30,
+    fontWeight: FontWeight.w900,
+    fontFamily: kGtSectraFine,
+    letterSpacing: 1.2,
+  );
+  static const textStyle14 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+  );
+
+  static const textStyle16 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+  );
+
 
 }
