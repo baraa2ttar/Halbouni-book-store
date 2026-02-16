@@ -40,7 +40,7 @@ class AppTextStyles {
 
   static TextStyle headlineAppColor(BuildContext context) => TextStyle(
       fontWeight: FontWeight.w500,
-      color: AppColor.primaryColor,
+      color: AppColor.blackColor,
       fontSize: context.sp(18));
 
   static TextStyle subtitleS12(BuildContext context) => TextStyle(
@@ -65,6 +65,7 @@ class AppTextStyles {
   static const textStyle20 = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.normal,
+    fontFamily: kGtSectraFine
   );
   static const textStyle30 = TextStyle(
     fontSize: 30,
