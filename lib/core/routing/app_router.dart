@@ -1,6 +1,7 @@
 import 'package:adv/Features/Home/presentation/views/home_view.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../Features/Home/presentation/views/book_details_view.dart';
 import '../../Features/splash/presentation/views/splash_view.dart';
 import '../exports/main_exports.dart';
 
@@ -13,6 +14,7 @@ abstract class AppRouter {
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashView()),
       GoRoute(path: '/homeView', builder: (context, state) => const HomeView()),
+      GoRoute(path: '/bookDetailsView', builder: (context, state) => const BookDetailsView()),
     ],
   );
 }
