@@ -1,6 +1,7 @@
 import 'package:adv/Features/Home/presentation/views/home_view.dart';
 import 'package:adv/Features/splash/presentation/views/widgets/sliding_text.dart';
 import 'package:adv/core/exports/main_exports.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/constant/app_constants.dart';
@@ -76,7 +77,7 @@ class _SplashViewBodyState extends State<SplashViewBody>
   }
   void navigateToHome() {
     Future.delayed(const Duration(seconds: 2),(){
-      Get.to(()=> const HomeView(),transition: Transition.fade,duration: kTransitionDuration);
+      GoRouter.of(context).push(AppRouter.kHomeView);
     });
   }
 }

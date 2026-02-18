@@ -5,5 +5,4 @@ export 'package:adv/core/routing/app_router.dart';
 export 'package:adv/core/routing/routes.dart';
 export 'package:flutter/material.dart';
 export 'package:flutter_screenutil/flutter_screenutil.dart';
-export 'package:get/get.dart';
 export 'package:flutter/services.dart';

@@ -1,16 +1,30 @@
-import 'package:adv/core/exports/ui_exports.dart';
-import 'package:adv/view/auth/screens/signin_screen.dart';
-import 'package:adv/view/onboarding/screens/onboarding_screen.dart';
-
-import 'package:adv/view/auth/screens/signup_screen.dart';
+import 'package:adv/Features/Home/presentation/views/home_view.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../Features/splash/presentation/views/splash_view.dart';
+import '../exports/main_exports.dart';
 
-final List<GetPage> appPages = [
-  GetPage(name: Routes.onboarding, page: () => OnboardingScreen()),
-  GetPage(name: Routes.splash, page: () => SplashView()),
-  // GetPage(name: Routes.signUp, page: () => SignUpScreen()),
-  // GetPage(name: Routes.signIn, page: () => SignInScreen()),
-  //GetPage(name: Routes.home, page: () => const HomeMainScreen()),
-  // GetPage(name: Routes.login, page: () =>  LoginScreen()),
-];
+abstract class AppRouter {
+  static const kHomeView = '/homeView';
+  static const kBookDetailsView = '/bookDetailsView';
+  static const kSearchView = '/searchView';
+
+  static final GoRouter router = GoRouter(
+    routes: [
+      GoRoute(path: '/', builder: (context, state) => const SplashView()),
+      GoRoute(path: '/homeView', builder: (context, state) => const HomeView()),
+    ],
+  );
+}
+
+
+
+
+// final List<GetPage> appPages = [
+//   GetPage(name: Routes.onboarding, page: () => OnboardingScreen()),
+//   GetPage(name: Routes.splash, page: () => SplashView()),
+//   // GetPage(name: Routes.signUp, page: () => SignUpScreen()),
+//   // GetPage(name: Routes.signIn, page: () => SignInScreen()),
+//   //GetPage(name: Routes.home, page: () => const HomeMainScreen()),
+//   // GetPage(name: Routes.login, page: () =>  LoginScreen()),
+// ];

@@ -1,4 +1,7 @@
+import 'package:adv/Features/splash/presentation/views/splash_view.dart';
 import 'package:adv/core/exports/main_exports.dart';
+import 'package:adv/core/routing/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +18,8 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
-          child: GetMaterialApp(
+          child: MaterialApp.router(
+            routerConfig: AppRouter.router,
             debugShowCheckedModeBanner: false,
 
             title: 'Graduation',
@@ -25,11 +29,11 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
             builder: (context, child) => responsiveBuilder(context, child),
-            initialRoute: Routes.splash,
-            getPages: appPages,
+
           ),
         );
       },
     );
   }
 }
+
