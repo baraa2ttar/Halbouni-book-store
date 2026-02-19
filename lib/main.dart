@@ -2,6 +2,7 @@ import 'package:adv/Features/splash/presentation/views/splash_view.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
             title: 'Graduation',
             theme: ThemeData(
               scaffoldBackgroundColor: AppColor.whiteColor,
+              textTheme: GoogleFonts.montserratTextTheme(),
               fontFamily: 'Rubik',
               useMaterial3: true,
             ),
