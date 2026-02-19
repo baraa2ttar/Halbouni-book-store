@@ -1,7 +1,9 @@
 import 'package:adv/Features/Home/presentation/views/widgets/rating_widget.dart';
 import 'package:adv/core/constant/app_text_styles.dart';
 import 'package:adv/core/exports/main_exports.dart';
+import 'package:adv/core/widgets/custom_button.dart';
 
+import 'booksActionButton.dart';
 import 'custom_book_detailes_app_bar.dart';
 import 'custom_list_view_item.dart';
 
@@ -14,34 +16,29 @@ class BookDetailsViewBody extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center
-        ,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SafeArea(child: CustomBookDetailesAppBar()),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: width * 0.18),
             child: CustomListViewItem(),
           ),
-          SizedBox(
-            height: 43,
-          ),
-          Text(
-            "The Jungle Book ",
-            style: AppTextStyles.textStyle30,
-          ),
-          SizedBox(
-            height: 6,
-          ),
+          SizedBox(height: 43),
+          Text("The Jungle Book ", style: AppTextStyles.textStyle30),
+          SizedBox(height: 6),
           Opacity(
             opacity: 0.7,
             child: Text(
               "Rudyard kipling",
               style: AppTextStyles.textStyle18.copyWith(
-                 fontStyle: FontStyle.italic
-                ),
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
 
+          SizedBox(width: 120, child: RatingWidget()),
+          SizedBox(height: 45),
+          BooksActionButton(),
         ],
       ),
     );
