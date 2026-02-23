@@ -1,4 +1,5 @@
 import 'package:adv/Features/Home/presentation/views/widgets/rating_widget.dart';
+import 'package:adv/Features/Home/presentation/views/widgets/similar_books_listview.dart';
 import 'package:adv/core/constant/app_text_styles.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/widgets/custom_button.dart';
@@ -13,34 +14,56 @@ class BookDetailsViewBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SafeArea(child: CustomBookDetailesAppBar()),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * 0.18),
-            child: CustomListViewItem(),
-          ),
-          SizedBox(height: 43),
-          Text("The Jungle Book ", style: AppTextStyles.textStyle30),
-          SizedBox(height: 6),
-          Opacity(
-            opacity: 0.7,
-            child: Text(
-              "Rudyard kipling",
-              style: AppTextStyles.textStyle18.copyWith(
-                fontStyle: FontStyle.italic,
-              ),
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SafeArea(child: CustomBookDetailesAppBar()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.18),
+                  child: CustomListViewItem(),
+                ),
+                SizedBox(height: 43),
+                Text("The Jungle Book ", style: AppTextStyles.textStyle30),
+                SizedBox(height: 6),
+                Opacity(
+                  opacity: 0.7,
+                  child: Text(
+                    "Rudyard kipling",
+                    style: AppTextStyles.textStyle18.copyWith(
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 120, child: RatingWidget()),
+                SizedBox(height: 45),
+                BooksActionButton(),
+                Expanded(child: SizedBox(height: 45)),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "you can also like : ",
+                    style: AppTextStyles.textStyle14.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 15),
+                SimilarBooksListView(),
+                SizedBox(height: 40),
+              ],
             ),
           ),
-
-          SizedBox(width: 120, child: RatingWidget()),
-          SizedBox(height: 45),
-          BooksActionButton(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+
+
