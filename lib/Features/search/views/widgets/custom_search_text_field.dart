@@ -3,8 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/exports/main_exports.dart';
 
-class CustomTextField extends StatelessWidget {
-  const CustomTextField({super.key});
+class CustomSearchTextField extends StatelessWidget {
+  const CustomSearchTextField({super.key});
 
   @override
   Widget build(BuildContext context) {
