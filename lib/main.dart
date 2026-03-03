@@ -1,12 +1,17 @@
+import 'package:adv/Features/Home/domain/entities/book_entity.dart';
 import 'package:adv/Features/splash/presentation/views/splash_view.dart';
+import 'package:adv/core/constant/app_constants.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 
-void main() {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+  Hive.registerAdapter(BookEntityAdapter());
+ await Hive.openBox(kFeaturedBox);
 }
 
 class MyApp extends StatelessWidget {
