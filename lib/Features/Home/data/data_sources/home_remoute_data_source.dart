@@ -1,3 +1,6 @@
+import 'package:adv/core/constant/app_constants.dart';
+import 'package:hive/hive.dart';
+
 import '../../../../core/services/api_service.dart';
 import '../../domain/entities/book_entity.dart';
 import '../models/book_model/book_model.dart';
@@ -34,6 +37,8 @@ class HomeReouteDataSourceImpl implements HomeRemouteDataSource {
     for (var BookMap in data["items"]) {
       books.add(BookModel.fromJson(BookMap));
     }
+    var box = Hive.box(kNewestBox);
+    box.addAll(books);
     return books;
   }
 }
