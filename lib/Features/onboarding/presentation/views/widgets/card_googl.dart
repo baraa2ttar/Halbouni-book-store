@@ -1,10 +1,5 @@
 
 import 'package:adv/core/exports/main_exports.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../../core/constant/app_assets.dart';
-import '../../../../core/constant/app_colors.dart';
 
 class CardGoogle extends StatelessWidget {
   final String ? imagePath;

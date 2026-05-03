@@ -6,6 +6,19 @@ import 'search_info.dart';
 import 'volume_info.dart';
 
 class BookModel extends BookEntity {
+  static String _firstAuthor(List<String>? authors) {
+    if (authors == null || authors.isEmpty) return 'No Name';
+    return authors.first;
+  }
+
+  static String _normalizeImageUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http://')) {
+      return url.replaceFirst('http://', 'https://');
+    }
+    return url;
+  }
+
   String? kind;
   String? id;
   String? etag;
@@ -26,8 +39,11 @@ class BookModel extends BookEntity {
     this.searchInfo,
   }) : super(
          bookId: id ?? '',
-         image: volumeInfo?.imageLinks?.thumbnail ?? '',
-         authorName: volumeInfo?.authors?.first ?? 'No Name',
+         image: _normalizeImageUrl(
+           volumeInfo?.imageLinks?.thumbnail ??
+               volumeInfo?.imageLinks?.smallThumbnail,
+         ),
+         authorName: _firstAuthor(volumeInfo?.authors),
          price: 0.0,
          rating: volumeInfo?.averageRating ?? 0,
          title: volumeInfo?.title ?? '',

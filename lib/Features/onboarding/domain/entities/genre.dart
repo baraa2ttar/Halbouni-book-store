@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
-
 class Genre {
   final String name;
-  final IconData icon;
 
-  const Genre({required this.name, required this.icon});
+  const Genre({required this.name});
 
   @override
   bool operator ==(Object other) {

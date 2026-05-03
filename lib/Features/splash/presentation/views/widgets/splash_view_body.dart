@@ -1,11 +1,10 @@
-import 'package:adv/Features/Home/presentation/views/home_view.dart';
 import 'package:adv/Features/splash/presentation/views/widgets/sliding_text.dart';
 import 'package:adv/core/exports/main_exports.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../../core/constant/app_assets.dart';
-import '../../../../../core/constant/app_constants.dart';
 import '../../../../../core/constant/app_text_styles.dart';
+import '../../../../../core/services/setup_service_locator.dart';
+import '../../../../onboarding/domain/use_cases/is_onboarding_completed_use_case.dart';
 
 class SplashViewBody extends StatefulWidget {
   const SplashViewBody({super.key});
@@ -76,8 +75,10 @@ class _SplashViewBodyState extends State<SplashViewBody>
     animationController.forward();
   }
   void navigateToHome() {
-    Future.delayed(const Duration(seconds: 2),(){
-      GoRouter.of(context).push(AppRouter.kHomeView);
+    Future.delayed(const Duration(seconds: 2), () async {
+      final isCompleted = await getIt.get<IsOnboardingCompletedUseCase>()();
+      if (!mounted) return;
+      AppRouter.router.go(isCompleted ? AppRouter.kHomeView : AppRouter.kOnboardingView);
     });
   }
 }

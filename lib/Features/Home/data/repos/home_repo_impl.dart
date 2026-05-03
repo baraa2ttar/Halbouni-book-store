@@ -14,15 +14,17 @@ class HomeRepoImpl extends HomeRepo{
   HomeRepoImpl({required this.homeRemouteDataSource,required this.homeLocalDataSource});
 
   @override
-  Future<Either<Failure, List<BookEntity>>> fetchFeaturedBooks() async {
+  Future<Either<Failure, List<BookEntity>>> fetchFeaturedBooks(
+      {int pageNumber = 0}) async {
     try {
-      var books = await homeRemouteDataSource.fetchFeaturedBooks();
+      var books = await homeRemouteDataSource.fetchFeaturedBooks(
+        pageNumber: pageNumber,
+      );
       return right(books);
-    }on Exception catch(e)
-    {
+    } catch (e) {
+      // Catch Error as well as Exception (e.g. TypeError on null items, StateError on empty authors).
       return left(ServerFailure(e.toString()));
     }
-
   }
 
 
@@ -31,8 +33,7 @@ class HomeRepoImpl extends HomeRepo{
     try {
       var books = await homeRemouteDataSource.fetchNewestBooks();
       return right(books);
-    }on Exception catch(e)
-    {
+    } catch (e) {
       if (e is DioException) {
         return left(ServerFailure.fromDiorError(e));
       }

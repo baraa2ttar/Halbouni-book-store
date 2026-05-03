@@ -1,4 +1,4 @@
-// import 'package:adv/view/onboarding/screens/onboarding_screen.dart';
+// import 'package:adv/Features/onboarding/screens/onboarding_screen.dart';
 // import 'package:adv/core/exports/ui_exports.dart';
 //
 // import '../../../../../core/services/services.dart';

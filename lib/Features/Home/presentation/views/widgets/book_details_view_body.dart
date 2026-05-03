@@ -26,7 +26,7 @@ class BookDetailsViewBody extends StatelessWidget {
                 SafeArea(child: CustomBookDetailesAppBar()),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: width * 0.18),
-                  child: CustomListViewItem(),
+                  child: CustomListViewItem(image: '',),
                 ),
                 SizedBox(height: 43),
                 Text("The Jungle Book ", style: AppTextStyles.textStyle30),

@@ -12,6 +12,12 @@ final class FeaturedBooksFailure extends FeaturedBooksState {
 }
 final class FeaturedBooksSuccess extends FeaturedBooksState {
   final List <BookEntity> book ;
+  final bool isLoadingMore;
+  final bool hasReachedMax;
 
-  FeaturedBooksSuccess(this.book);
+  FeaturedBooksSuccess(
+    this.book, {
+    this.isLoadingMore = false,
+    this.hasReachedMax = false,
+  });
 }

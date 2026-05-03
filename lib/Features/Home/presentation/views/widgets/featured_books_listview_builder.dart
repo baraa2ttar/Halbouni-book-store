@@ -13,14 +13,25 @@ class FeaturedBooksListViewBlocBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FeaturedBooksCubit, FeaturedBooksState>(
       builder: (context, state) {
-        if (state is FeaturedBooksSuccess){
-          return FeaturedBooksListView();
+        if (state is FeaturedBooksSuccess) {
+          return FeaturedBooksListView(
+            books: state.book,
+            isLoadingMore: state.isLoadingMore,
+            onLoadMore: state.hasReachedMax
+                ? null
+                : () => context.read<FeaturedBooksCubit>().fetchFeaturedBooks(
+                      loadMore: true,
+                    ),
+          );
         }
         else if (state is FeaturedBooksFailure){
           return Text(state.message);
         }
         else {
-          return const CircularProgressIndicator();
+          return SizedBox(
+            height: 200.h,
+            child: const Center(child: CircularProgressIndicator()),
+          );
         }
       },
     );

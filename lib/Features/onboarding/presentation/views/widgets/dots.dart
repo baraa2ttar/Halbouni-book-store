@@ -1,5 +1,5 @@
 
-import '../../../../core/exports/main_exports.dart';
+import 'package:adv/core/exports/main_exports.dart';
 
 class Dots extends StatelessWidget {
   const Dots({super.key});
