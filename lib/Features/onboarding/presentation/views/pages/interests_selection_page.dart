@@ -1,21 +1,15 @@
 import 'package:adv/Features/onboarding/presentation/models/genre.dart';
+import 'package:adv/Features/onboarding/presentation/manager/onboarding_cubit.dart';
+import 'package:adv/Features/onboarding/presentation/manager/onboarding_state.dart';
 import 'package:adv/core/exports/ui_exports.dart';
+import 'package:adv/core/routing/app_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/card_googl.dart';
 
 class InterestsSelectionPage extends StatelessWidget {
-  final List<String> selectedInterests;
-  final ValueChanged<String> onToggle;
-  final VoidCallback? onFinish;
-  final bool isLoading;
-
-  const InterestsSelectionPage({
-    super.key,
-    required this.selectedInterests,
-    required this.onToggle,
-    required this.onFinish,
-    required this.isLoading,
-  });
+  const InterestsSelectionPage({super.key});
 
   static const bookGenres = <Genre>[
     Genre(name: "Romance", icon: Icons.favorite),
@@ -35,97 +29,125 @@ class InterestsSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedCount = selectedInterests.length;
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: SizedBox(
-          width: 180,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: LinearProgressIndicator(
-              value: 1.0,
-              minHeight: 8.0,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation(AppColor.primaryColor),
-            ),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "What are your interests?",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Select up to 4 categories to personalize your book recommendations",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "$selectedCount/4 selected",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: selectedCount == 4
-                        ? AppColor.primaryColor
-                        : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 2.5,
-                ),
-                itemCount: bookGenres.length,
-                itemBuilder: (context, index) {
-                  final genre = bookGenres[index];
-                  final isSelected = selectedInterests.contains(genre.name);
-                  final canSelect = selectedInterests.length < 4 || isSelected;
+    return BlocConsumer<OnboardingCubit, OnboardingState>(
+      listenWhen: (previous, current) =>
+          previous.submitStatus != current.submitStatus,
+      listener: (context, state) {
+        if (state.submitStatus == OnboardingSubmitStatus.failure &&
+            state.submitErrorMessage != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.submitErrorMessage!)));
+        }
+        if (state.submitStatus == OnboardingSubmitStatus.success) {
+          context.go(AppRouter.kHomeView);
+        }
+      },
+      builder: (context, state) {
+        final selectedInterests = state.interests;
+        final isLoading = state.submitStatus == OnboardingSubmitStatus.loading;
+        final selectedCount = selectedInterests.length;
+        final canSubmit = selectedCount == 4 && !isLoading;
 
-                  return _buildInterestCard(
-                    genre: genre,
-                    isSelected: isSelected,
-                    canSelect: canSelect,
-                  );
-                },
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: SizedBox(
+              width: 180,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: LinearProgressIndicator(
+                  value: 1.0,
+                  minHeight: 8.0,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation(AppColor.primaryColor),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-            CardGoogle(
-              label: isLoading ? "Finishing..." : "Continue",
-              backGroundColor:
-                  onFinish != null ? AppColor.primaryColor : Colors.grey[400]!,
-              onTap: isLoading ? null : onFinish,
+            centerTitle: true,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "What are your interests?",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Select up to 4 categories to personalize your book recommendations",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "$selectedCount/4 selected",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: selectedCount == 4
+                            ? AppColor.primaryColor
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 2.5,
+                        ),
+                    itemCount: bookGenres.length,
+                    itemBuilder: (context, index) {
+                      final genre = bookGenres[index];
+                      final isSelected = selectedInterests.contains(genre.name);
+                      final canSelect = selectedInterests.length < 4 || isSelected;
+
+                      return _buildInterestCard(
+                        genre: genre,
+                        isSelected: isSelected,
+                        canSelect: canSelect,
+                        onTap: () =>
+                            context.read<OnboardingCubit>().toggleInterest(
+                              genre.name,
+                            ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                CardGoogle(
+                  label: isLoading ? "Finishing..." : "Continue",
+                  backGroundColor:
+                      canSubmit ? AppColor.primaryColor : Colors.grey[400]!,
+                  onTap: isLoading
+                      ? null
+                      : () => context.read<OnboardingCubit>().submitInterests(),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -133,9 +155,10 @@ class InterestsSelectionPage extends StatelessWidget {
     required Genre genre,
     required bool isSelected,
     required bool canSelect,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: canSelect ? () => onToggle(genre.name) : null,
+      onTap: canSelect ? onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

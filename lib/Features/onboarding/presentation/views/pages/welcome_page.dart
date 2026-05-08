@@ -1,5 +1,8 @@
 import 'package:adv/core/exports/ui_exports.dart';
+import 'package:adv/core/routing/app_router.dart';
+import 'package:go_router/go_router.dart';
 
+import '../widgets/card_email.dart';
 import '../widgets/card_googl.dart';
 import '../widgets/dots.dart';
 
@@ -77,10 +80,22 @@ class WelcomePage extends StatelessWidget {
                     label: "continue with google",
                     backGroundColor: Colors.transparent,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "I alredy have an Account",
-                    style: TextStyle(color: AppColor.primaryColor),
+                  const SizedBox(height: 12),
+                  CardEmail(
+                    onTap: () => context.push(AppRouter.kAuthSignUp),
+                    label: 'Continue with email',
+                  ),
+                  const SizedBox(height: 14),
+                  InkWell(
+                    onTap: () => context.push(AppRouter.kAuthSignIn),
+                    child: Text(
+                      "I alredy have an Account",
+                      style: TextStyle(
+                        color: AppColor.primaryColor,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColor.primaryColor,
+                      ),
+                    ),
                   ),
                 ],
               ),

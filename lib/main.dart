@@ -5,11 +5,11 @@ import 'package:adv/Features/Home/domain/entities/book_entity.dart';
 import 'package:adv/Features/Home/domain/use_cases/fetch_featured_books_use_case.dart';
 import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:adv/core/constant/app_constants.dart';
+import 'package:adv/core/constant/supabase_config.dart';
 import 'package:adv/core/exports/main_exports.dart';
-import 'package:adv/core/routing/app_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Features/Home/domain/use_cases/fetch_newest_books_use_case.dart';
 import 'Features/Home/presentation/manager/newest_books_cubit/newest_books_cubit.dart';
 import 'core/services/setup_service_locator.dart';
@@ -19,6 +19,23 @@ Future<void> _openHiveBoxes() async {
   const timeout = Duration(seconds: 12);
   await Hive.openBox<BookEntity>(kFeaturedBox).timeout(timeout);
   await Hive.openBox<BookEntity>(kNewestBox).timeout(timeout);
+}
+
+Future<void> _initSupabase() async {
+  if (!SupabaseConfig.isConfigured) {
+    throw FlutterError(
+      'Supabase initialization failed: SUPABASE_URL and SUPABASE_ANON_KEY must be '
+      'provided via --dart-define.\n'
+      'Example: flutter run --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co '
+      '--dart-define=SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY',
+    );
+  }
+  // Persist sessions to SharedPreferences by default (`SharedPreferencesLocalStorage`);
+  // `Supabase.initialize` restores the session so `auth.currentSession` is available early.
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
 }
 
 Future<void> _initHive() async {
@@ -45,6 +62,12 @@ void main() async {
     await _initHive();
   } catch (e, st) {
     debugPrint('Hive init failed — continuing without local cache: $e\n$st');
+  }
+
+  try {
+    await _initSupabase();
+  } catch (e, st) {
+    debugPrint('Supabase init failed: $e\n$st');
   }
 
   setupServiceLocator();

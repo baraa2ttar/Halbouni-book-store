@@ -1,5 +1,6 @@
 import 'package:adv/Features/splash/presentation/views/widgets/sliding_text.dart';
 import 'package:adv/core/exports/main_exports.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/constant/app_text_styles.dart';
@@ -35,6 +36,7 @@ class _SplashViewBodyState extends State<SplashViewBody>
     animationController.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
@@ -78,7 +80,21 @@ class _SplashViewBodyState extends State<SplashViewBody>
     Future.delayed(const Duration(seconds: 2), () async {
       final isCompleted = await getIt.get<IsOnboardingCompletedUseCase>()();
       if (!mounted) return;
-      AppRouter.router.go(isCompleted ? AppRouter.kHomeView : AppRouter.kOnboardingView);
+
+      final hydratedSession = Supabase.instance.client.auth.currentSession;
+      _observeHydratedSupabaseSession(hydratedSession);
+
+      AppRouter.router.go(
+        isCompleted ? AppRouter.kHomeView : AppRouter.kOnboardingView,
+      );
     });
+  }
+
+  /// Reads `currentSession` so cold start explicitly accounts for supabase_flutter's restored session (default local persistence after [Supabase.initialize]).
+  void _observeHydratedSupabaseSession(Session? session) {
+    if (session == null) {
+      return;
+    }
+    // Non-null: user can skip re-entering credentials; splash still routes by local onboarding completion only.
   }
 }

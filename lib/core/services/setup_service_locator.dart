@@ -1,5 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../Features/Auth/data/repos/auth_repo_impl.dart';
+import '../../Features/Auth/domain/repos/auth_repo.dart';
+import '../../Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
 import '../../Features/Home/data/data_sources/home_local_datasource.dart';
 import '../../Features/Home/data/data_sources/home_remoute_data_source.dart';
 import '../../Features/Home/data/repos/home_repo_impl.dart';
@@ -22,6 +27,10 @@ Dio _createDio() {
 
 void setupServiceLocator() {
   getIt.registerSingleton<ApiService>(ApiService(_createDio()));
+
+  getIt.registerLazySingleton<AuthRepo>(() => AuthRepoImpl());
+  getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt.get<AuthRepo>()));
+
   getIt.registerSingleton<HomeRepoImpl>(
     HomeRepoImpl(
       homeLocalDataSource: HomeLocalDataSourceImpl(),
@@ -33,7 +42,10 @@ void setupServiceLocator() {
     () => OnboardingLocalDataSource(),
   );
   getIt.registerLazySingleton<OnboardingRepo>(
-    () => OnboardingRepoImpl(getIt.get<OnboardingLocalDataSource>()),
+    () => OnboardingRepoImpl(
+      getIt.get<OnboardingLocalDataSource>(),
+      Supabase.instance.client,
+    ),
   );
   getIt.registerLazySingleton<IsOnboardingCompletedUseCase>(
     () => IsOnboardingCompletedUseCase(getIt.get<OnboardingRepo>()),

@@ -10,7 +10,10 @@ import 'pages/interests_selection_page.dart';
 import 'pages/welcome_page.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({super.key, this.initialPageIndex = 0});
+
+  /// `PageView` index: 0 welcome, 1 gender, 2 age, 3 interests (see [AppRouter.onboardingLastPageIndex]).
+  final int initialPageIndex;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -22,7 +25,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    final start = widget.initialPageIndex.clamp(
+      0,
+      AppRouter.onboardingLastPageIndex,
+    );
+    _pageController = PageController(initialPage: start);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<OnboardingCubit>().setPageIndex(start);
+    });
   }
 
   @override
@@ -36,12 +47,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
-  }
-
-  Future<void> _finish(BuildContext context) async {
-    await context.read<OnboardingCubit>().complete();
-    if (!context.mounted) return;
-    AppRouter.router.go(AppRouter.kHomeView);
   }
 
   @override
@@ -60,15 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onSelect: context.read<OnboardingCubit>().setAgeIndex,
             onContinue: _next,
           ),
-          InterestsSelectionPage(
-            selectedInterests: state.interests,
-            onToggle: context.read<OnboardingCubit>().toggleInterest,
-            isLoading: state.isCompleting,
-            onFinish:
-                state.interests.length == 4 && !state.isCompleting
-                    ? () => _finish(context)
-                    : null,
-          ),
+          const InterestsSelectionPage(),
         ];
 
         return PageView.builder(
