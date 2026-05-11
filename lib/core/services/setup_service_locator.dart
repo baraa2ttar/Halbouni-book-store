@@ -5,8 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../Features/Auth/data/repos/auth_repo_impl.dart';
 import '../../Features/Auth/domain/repos/auth_repo.dart';
 import '../../Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
-import '../../Features/Home/data/data_sources/home_local_datasource.dart';
-import '../../Features/Home/data/data_sources/home_remoute_data_source.dart';
 import '../../Features/Home/data/repos/home_repo_impl.dart';
 import '../../Features/onboarding/data/datasources/onboarding_local_data_source.dart';
 import '../../Features/onboarding/data/repos/onboarding_repo_impl.dart';
@@ -32,10 +30,7 @@ void setupServiceLocator() {
   getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt.get<AuthRepo>()));
 
   getIt.registerSingleton<HomeRepoImpl>(
-    HomeRepoImpl(
-      homeLocalDataSource: HomeLocalDataSourceImpl(),
-      homeRemouteDataSource: HomeReouteDataSourceImpl(getIt.get<ApiService>()),
-    ),
+    HomeRepoImpl(supabase: Supabase.instance.client),
   );
 
   getIt.registerLazySingleton<OnboardingLocalDataSource>(

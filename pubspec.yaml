@@ -59,6 +59,7 @@ dependencies:
   get_it: ^9.2.1
   cached_network_image: ^3.4.1
   supabase_flutter: ^2.12.4
+  equatable: ^2.0.8
 
 
 dev_dependencies:

@@ -1,9 +1,7 @@
 import 'package:adv/Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
-import 'package:adv/Features/onboarding/domain/use_cases/is_onboarding_completed_use_case.dart';
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/helpers/validation_service.dart';
 import 'package:adv/core/routing/app_router.dart';
-import 'package:adv/core/services/setup_service_locator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,12 +24,6 @@ class _AuthSignInViewState extends State<AuthSignInView> {
     super.dispose();
   }
 
-  Future<void> _onAuthenticated(BuildContext ctx) async {
-    final onboardingDone = await getIt.get<IsOnboardingCompletedUseCase>()();
-    if (!ctx.mounted) return;
-    ctx.go(onboardingDone ? AppRouter.kHomeView : AppRouter.kOnboardingView);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +38,7 @@ class _AuthSignInViewState extends State<AuthSignInView> {
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is AuthAuthenticated && !state.fromSignUp) {
-              _onAuthenticated(context);
+              context.go(AppRouter.kHomeView);
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(state.message)),

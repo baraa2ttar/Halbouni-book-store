@@ -1,4 +1,4 @@
-import 'package:adv/Features/Home/domain/entities/book_entity.dart';
+import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/domain/use_cases/fetch_newest_books_use_case.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';

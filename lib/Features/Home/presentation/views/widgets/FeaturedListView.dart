@@ -1,4 +1,4 @@
-import 'package:adv/Features/Home/domain/entities/book_entity.dart';
+import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 
 import '../../../../../core/exports/main_exports.dart';
 import 'custom_list_view_item.dart';
@@ -11,7 +11,7 @@ class FeaturedBooksListView extends StatefulWidget {
     this.onLoadMore,
   });
 
-  final List <BookEntity> books ;
+  final List<ProductEntity> books;
   final bool isLoadingMore;
   final VoidCallback? onLoadMore;
 
@@ -93,7 +93,7 @@ class _FeaturedBooksListViewState extends State<FeaturedBooksListView> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: CustomListViewItem(
-              image: widget.books[index].image ?? "",
+              image: widget.books[index].imageUrl,
             ),
           );
         },

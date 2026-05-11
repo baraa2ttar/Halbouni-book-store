@@ -5,8 +5,8 @@ import 'package:adv/Features/Home/domain/entities/book_entity.dart';
 import 'package:adv/Features/Home/domain/use_cases/fetch_featured_books_use_case.dart';
 import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:adv/core/constant/app_constants.dart';
-import 'package:adv/core/constant/supabase_config.dart';
 import 'package:adv/core/exports/main_exports.dart';
+import 'package:adv/core/utils/app_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,19 +22,10 @@ Future<void> _openHiveBoxes() async {
 }
 
 Future<void> _initSupabase() async {
-  if (!SupabaseConfig.isConfigured) {
-    throw FlutterError(
-      'Supabase initialization failed: SUPABASE_URL and SUPABASE_ANON_KEY must be '
-      'provided via --dart-define.\n'
-      'Example: flutter run --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co '
-      '--dart-define=SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY',
-    );
-  }
-  // Persist sessions to SharedPreferences by default (`SharedPreferencesLocalStorage`);
-  // `Supabase.initialize` restores the session so `auth.currentSession` is available early.
+  if (!AppConfig.isConfigured) return;
   await Supabase.initialize(
-    url: SupabaseConfig.url,
-    anonKey: SupabaseConfig.anonKey,
+    url: AppConfig.supabaseUrl,
+    anonKey: AppConfig.supabaseAnonKey,
   );
 }
 
@@ -57,6 +48,7 @@ Future<void> _initHive() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.validate();
 
   try {
     await _initHive();

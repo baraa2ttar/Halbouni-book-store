@@ -1,4 +1,4 @@
-import 'package:adv/Features/Home/domain/entities/book_entity.dart';
+import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/domain/use_cases/fetch_featured_books_use_case.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
@@ -8,13 +8,13 @@ part 'featured_books_state.dart';
 class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
   FeaturedBooksCubit(this.featuredBooksUseCase) : super(FeaturedBooksInitial());
 
- final FetchFeaturedBooksUseCase featuredBooksUseCase ;
- int _pageNumber = 0;
- bool _isFetching = false;
- bool _hasReachedMax = false;
- final List<BookEntity> _books = [];
+  final FetchFeaturedBooksUseCase featuredBooksUseCase;
+  int _pageNumber = 0;
+  bool _isFetching = false;
+  bool _hasReachedMax = false;
+  final List<ProductEntity> _books = [];
 
-  Future <void> fetchFeaturedBooks({bool loadMore = false}) async{
+  Future<void> fetchFeaturedBooks({bool loadMore = false}) async {
     if (_isFetching) return;
     if (loadMore && _hasReachedMax) return;
 
@@ -28,7 +28,7 @@ class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
     } else {
       emit(
         FeaturedBooksSuccess(
-          List<BookEntity>.from(_books),
+          List<ProductEntity>.from(_books),
           isLoadingMore: true,
           hasReachedMax: _hasReachedMax,
         ),
@@ -38,8 +38,7 @@ class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
     var result = await featuredBooksUseCase.call(_pageNumber);
     result.fold((failure) {
       emit(FeaturedBooksFailure(failure.message));
-    },
-        (books){
+    }, (books) {
       if (books.isEmpty) {
         _hasReachedMax = true;
       } else {
@@ -49,7 +48,7 @@ class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
 
       emit(
         FeaturedBooksSuccess(
-          List<BookEntity>.from(_books),
+          List<ProductEntity>.from(_books),
           isLoadingMore: false,
           hasReachedMax: _hasReachedMax,
         ),
