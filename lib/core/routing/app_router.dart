@@ -1,6 +1,7 @@
 import 'package:adv/Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
 import 'package:adv/Features/Auth/presentation/views/auth_sign_in_view.dart';
 import 'package:adv/Features/Auth/presentation/views/auth_sign_up_view.dart';
+import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/presentation/views/home_view.dart';
 import 'package:adv/Features/onboarding/presentation/manager/onboarding_cubit.dart';
 import 'package:adv/Features/onboarding/presentation/views/onboarding_screen.dart';
@@ -59,8 +60,12 @@ abstract class AppRouter {
       ),
       GoRoute(path: '/homeView', builder: (context, state) => const HomeView()),
       GoRoute(
-        path: '/bookDetailsView',
-        builder: (context, state) => const BookDetailsView(),
+        path: '/bookDetailsView/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final product = state.extra as ProductEntity?;
+          return BookDetailsView(productId: id, productEntity: product);
+        },
       ),
       GoRoute(
         path: '/searchView',

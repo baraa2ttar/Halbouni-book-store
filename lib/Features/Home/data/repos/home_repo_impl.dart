@@ -48,4 +48,60 @@ class HomeRepoImpl extends HomeRepo {
       return left(ServerFailure(e.message));
     }
   }
+
+  @override
+  Future<Either<Failure, List<ProductEntity>>> fetchProductsByCategory({
+    required String categoryName,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('products')
+          .select('*, categories!inner(name), book_details(*)')
+          .eq('categories.name', categoryName);
+
+      final products = (data as List)
+          .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return right(products);
+    } on PostgrestException catch (e) {
+      return left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ProductEntity>>> searchProducts({
+    required String query,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('products')
+          .select('*, categories(name), book_details(*)')
+          .ilike('name', '%$query%');
+
+      final products = (data as List)
+          .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return right(products);
+    } on PostgrestException catch (e) {
+      return left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProductEntity>> fetchProductById({
+    required String productId,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('products')
+          .select('*, categories(name), book_details(*)')
+          .eq('id', productId)
+          .single();
+
+      final product = ProductModel.fromJson(data);
+      return right(product);
+    } on PostgrestException catch (e) {
+      return left(ServerFailure(e.message));
+    }
+  }
 }
