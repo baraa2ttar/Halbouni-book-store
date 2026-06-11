@@ -80,18 +80,24 @@ class _SplashViewBodyState extends State<SplashViewBody>
     Future.delayed(const Duration(seconds: 2), () async {
       if (!mounted) return;
 
-      final session = Supabase.instance.client.auth.currentSession;
-      if (session != null) {
-        AppRouter.router.go(AppRouter.kHomeView);
-        return;
+      try {
+        final session = Supabase.instance.client.auth.currentSession;
+        if (session != null) {
+          AppRouter.router.go(AppRouter.kHomeView);
+          return;
+        }
+      } catch (_) {}
+
+      try {
+        final isCompleted = await getIt.get<IsOnboardingCompletedUseCase>()();
+        if (!mounted) return;
+        AppRouter.router.go(
+          isCompleted ? AppRouter.kHomeView : AppRouter.kOnboardingView,
+        );
+      } catch (_) {
+        if (!mounted) return;
+        AppRouter.router.go(AppRouter.kOnboardingView);
       }
-
-      final isCompleted = await getIt.get<IsOnboardingCompletedUseCase>()();
-      if (!mounted) return;
-
-      AppRouter.router.go(
-        isCompleted ? AppRouter.kHomeView : AppRouter.kOnboardingView,
-      );
     });
   }
 }

@@ -6,7 +6,7 @@ import '../datasources/onboarding_local_data_source.dart';
 
 class OnboardingRepoImpl implements OnboardingRepo {
   final OnboardingLocalDataSource _local;
-  final SupabaseClient _supabase;
+  final SupabaseClient? _supabase;
   const OnboardingRepoImpl(this._local, this._supabase);
 
   @override
@@ -20,11 +20,15 @@ class OnboardingRepoImpl implements OnboardingRepo {
     required List<String> interests,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
+      final client = _supabase;
+      if (client == null) {
+        return left(ServerFailure('Supabase not configured'));
+      }
+      final user = client.auth.currentUser;
       if (user == null) {
         return left(ServerFailure('No authenticated user found'));
       }
-      await _supabase
+      await client
           .from('profiles')
           .update({'interests': interests})
           .eq('id', user.id);

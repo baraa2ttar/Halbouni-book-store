@@ -29,18 +29,24 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<AuthRepo>(() => AuthRepoImpl());
   getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt.get<AuthRepo>()));
 
-  getIt.registerSingleton<HomeRepoImpl>(
-    HomeRepoImpl(supabase: Supabase.instance.client),
+  getIt.registerLazySingleton<HomeRepoImpl>(
+    () => HomeRepoImpl(supabase: Supabase.instance.client),
   );
 
   getIt.registerLazySingleton<OnboardingLocalDataSource>(
     () => OnboardingLocalDataSource(),
   );
   getIt.registerLazySingleton<OnboardingRepo>(
-    () => OnboardingRepoImpl(
-      getIt.get<OnboardingLocalDataSource>(),
-      Supabase.instance.client,
-    ),
+    () {
+      SupabaseClient? client;
+      try {
+        client = Supabase.instance.client;
+      } catch (_) {}
+      return OnboardingRepoImpl(
+        getIt.get<OnboardingLocalDataSource>(),
+        client,
+      );
+    },
   );
   getIt.registerLazySingleton<IsOnboardingCompletedUseCase>(
     () => IsOnboardingCompletedUseCase(getIt.get<OnboardingRepo>()),

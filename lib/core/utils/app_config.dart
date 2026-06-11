@@ -1,10 +1,12 @@
 import 'dart:developer' as developer;
 
+import '../constant/supabase_config.dart';
+
 abstract final class AppConfig {
   AppConfig._();
 
-  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static String get supabaseUrl => SupabaseConfig.url;
+  static String get supabaseAnonKey => SupabaseConfig.anonKey;
 
   static bool get isConfigured =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;

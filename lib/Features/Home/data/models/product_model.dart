@@ -22,10 +22,9 @@ class ProductModel extends ProductEntity {
       imageUrl: json['image_url'] as String,
       categoryName: (json['categories'] as Map<String, dynamic>)['name'] as String,
       isFeatured: json['is_featured'] as bool,
-      bookDetails: (json['book_details'] as List?)
-              ?.cast<Map<String, dynamic>>()
-              .map(BookDetailModel.fromJson)
-              .firstOrNull,
+      bookDetails: json['book_details'] != null
+              ? BookDetailModel.fromJson(json['book_details'] as Map<String, dynamic>)
+              : null,
     );
   }
 

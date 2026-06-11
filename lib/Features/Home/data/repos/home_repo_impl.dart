@@ -28,6 +28,8 @@ class HomeRepoImpl extends HomeRepo {
       return right(products);
     } on PostgrestException catch (e) {
       return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
     }
   }
 
@@ -46,6 +48,8 @@ class HomeRepoImpl extends HomeRepo {
       return right(products);
     } on PostgrestException catch (e) {
       return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
     }
   }
 
@@ -65,6 +69,8 @@ class HomeRepoImpl extends HomeRepo {
       return right(products);
     } on PostgrestException catch (e) {
       return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
     }
   }
 
@@ -84,6 +90,8 @@ class HomeRepoImpl extends HomeRepo {
       return right(products);
     } on PostgrestException catch (e) {
       return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
     }
   }
 
@@ -102,6 +110,8 @@ class HomeRepoImpl extends HomeRepo {
       return right(product);
     } on PostgrestException catch (e) {
       return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
     }
   }
 }
