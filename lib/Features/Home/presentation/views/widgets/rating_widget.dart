@@ -1,23 +1,38 @@
 import '../../../../../core/exports/ui_exports.dart';
 
 class RatingWidget extends StatelessWidget {
-  const RatingWidget({super.key,  this.mainAxisAlignment=MainAxisAlignment.start});
-final MainAxisAlignment mainAxisAlignment;
+  const RatingWidget({
+    super.key,
+    this.mainAxisAlignment = MainAxisAlignment.start,
+    this.rating = 4.5,
+    this.reviewCount,
+  });
+
+  final MainAxisAlignment mainAxisAlignment;
+  final double rating;
+  final int? reviewCount;
+
   @override
   Widget build(BuildContext context) {
     return Row(
-mainAxisAlignment: mainAxisAlignment,
+      mainAxisAlignment: mainAxisAlignment,
       children: [
-        Icon(FontAwesomeIcons.solidStar,
-          color:Color(0xffffdd4f),
+        Icon(
+          FontAwesomeIcons.solidStar,
+          color: const Color(0xffffdd4f),
         ),
-        SizedBox(width: 6.3),
-        Text("4.8",
-
-          style: AppTextStyles.textStyle16,),
-        SizedBox(width: 6.3),
-        Text("(254)",
-          style: AppTextStyles.textStyle14,)
+        const SizedBox(width: 6.3),
+        Text(
+          rating.toStringAsFixed(1),
+          style: AppTextStyles.textStyle16,
+        ),
+        if (reviewCount != null) ...[
+          const SizedBox(width: 6.3),
+          Text(
+            "(${reviewCount})",
+            style: AppTextStyles.textStyle14,
+          ),
+        ],
       ],
     );
   }

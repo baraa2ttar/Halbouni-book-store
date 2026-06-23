@@ -10,6 +10,7 @@ class ProductModel extends ProductEntity {
     required super.imageUrl,
     required super.categoryName,
     required super.isFeatured,
+    super.rating,
     super.bookDetails,
   });
 
@@ -22,6 +23,7 @@ class ProductModel extends ProductEntity {
       imageUrl: json['image_url'] as String,
       categoryName: (json['categories'] as Map<String, dynamic>)['name'] as String,
       isFeatured: json['is_featured'] as bool,
+      rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       bookDetails: json['book_details'] != null
               ? BookDetailModel.fromJson(json['book_details'] as Map<String, dynamic>)
               : null,
@@ -36,6 +38,7 @@ class ProductModel extends ProductEntity {
         'image_url': imageUrl,
         'categories': {'name': categoryName},
         'is_featured': isFeatured,
+        'rating': rating,
         if (bookDetails != null)
           'book_details': [
             (bookDetails! is BookDetailModel

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/constant/app_text_styles.dart';
 import '../../../../../core/exports/main_exports.dart';
+import '../../../../../core/routing/app_router.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({super.key});
@@ -23,16 +24,16 @@ class CustomAppBar extends StatelessWidget {
           // TextStyle(color: AppColor.primaryColor,
           // fontSize: 20
           // ),
-
-
-            ),
+          ),
           const Spacer(),
           IconButton(onPressed: (){
             GoRouter.of(context).push(AppRouter.kSearchView);
           }, icon: const Icon(FontAwesomeIcons.magnifyingGlass,size: 20,)
           ),
-          IconButton(onPressed: (){}, icon: const Icon(Icons.notifications,size: 26,)),
-
+          IconButton(
+            onPressed: () => GoRouter.of(context).push(AppRouter.kCartView),
+            icon: const Icon(Icons.shopping_cart_outlined, size: 26,),
+          ),
         ],
       ),
     );

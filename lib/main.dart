@@ -8,11 +8,14 @@ import 'package:adv/core/constant/app_constants.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/utils/app_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Features/Home/domain/use_cases/fetch_newest_books_use_case.dart';
 import 'Features/Home/domain/use_cases/fetch_products_by_category_use_case.dart';
 import 'Features/Home/presentation/manager/newest_books_cubit/newest_books_cubit.dart';
+import 'Features/cart/data/models/cart_item_model.dart';
+import 'Features/cart/presentation/manager/cart_cubit/cart_cubit.dart';
 import 'core/services/setup_service_locator.dart';
 import 'core/services/simple_bloc_observer.dart';
 
@@ -20,6 +23,8 @@ Future<void> _openHiveBoxes() async {
   const timeout = Duration(seconds: 12);
   await Hive.openBox<BookEntity>(kFeaturedBox).timeout(timeout);
   await Hive.openBox<BookEntity>(kNewestBox).timeout(timeout);
+  final cartBox = await Hive.openBox<CartItemModel>(kCartBox).timeout(timeout);
+  getIt.registerSingleton<Box<CartItemModel>>(cartBox);
 }
 
 Future<void> _initSupabase() async {
@@ -33,6 +38,7 @@ Future<void> _initSupabase() async {
 Future<void> _initHive() async {
   await Hive.initFlutter();
   Hive.registerAdapter(BookEntityAdapter());
+  Hive.registerAdapter(CartItemModelAdapter());
   try {
     await _openHiveBoxes();
   } catch (e, st) {
@@ -87,6 +93,11 @@ class MyApp extends StatelessWidget {
               FetchNewestBooksUseCase(getIt.get<HomeRepoImpl>()),
               FetchProductsByCategoryUseCase(getIt.get<HomeRepoImpl>()),
             )..fetchNewestBooks();
+          },
+        ),
+        BlocProvider(
+          create: (context) {
+            return getIt.get<CartCubit>()..loadCart();
           },
         ),
       ],

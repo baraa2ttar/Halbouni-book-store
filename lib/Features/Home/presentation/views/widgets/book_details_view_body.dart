@@ -55,53 +55,57 @@ class _BookDetailsViewBodyState extends State<BookDetailsViewBody> {
         final author = product?.bookDetails?.author ?? '';
 
         var width = MediaQuery.of(context).size.width;
-        return CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SafeArea(child: CustomBookDetailesAppBar()),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width * 0.18),
-                      child: CustomListViewItem(image: imageUrl),
-                    ),
-                    SizedBox(height: 43),
-                    Text(name, style: AppTextStyles.textStyle30),
-                    SizedBox(height: 6),
-                    Opacity(
-                      opacity: 0.7,
-                      child: Text(
-                        author,
-                        style: AppTextStyles.textStyle18.copyWith(
-                          fontStyle: FontStyle.italic,
+        // [BACKGROUND COLOR] Change the Scaffold backgroundColor below to adjust the details page background
+        return Scaffold(
+          backgroundColor: AppColor.whiteColor,
+          body: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SafeArea(child: CustomBookDetailesAppBar()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width * 0.18),
+                        child: CustomListViewItem(image: imageUrl),
+                      ),
+                      SizedBox(height: 43),
+                      Text(name, style: AppTextStyles.textStyle30),
+                      SizedBox(height: 6),
+                      Opacity(
+                        opacity: 0.7,
+                        child: Text(
+                          author,
+                          style: AppTextStyles.textStyle18.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 120, child: RatingWidget()),
-                    SizedBox(height: 45),
-                    BooksActionButton(),
-                    Expanded(child: SizedBox(height: 45)),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "you can also like : ",
-                        style: AppTextStyles.textStyle14.copyWith(
-                          fontWeight: FontWeight.w600,
+                      SizedBox(width: 120, child: RatingWidget(rating: product?.rating ?? 4.5)),
+                      SizedBox(height: 45),
+                      if (product != null) BooksActionButton(product: product),
+                      Expanded(child: SizedBox(height: 45)),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "you can also like : ",
+                          style: AppTextStyles.textStyle14.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 15),
-                    SimilarBooksListView(),
-                    SizedBox(height: 40),
-                  ],
+                      SizedBox(height: 15),
+                      SimilarBooksListView(categoryName: product?.categoryName),
+                      SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );

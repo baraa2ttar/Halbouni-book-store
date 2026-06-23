@@ -1,9 +1,11 @@
-import 'package:adv/Features/Home/domain/entities/product_entity.dart';
-import 'package:adv/Features/Home/presentation/views/widgets/rating_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/exports/main_exports.dart';
 import '../../../../../core/exports/ui_exports.dart';
+import '../../../domain/entities/product_entity.dart';
+import 'rating_widget.dart';
 
 class CustomDetailedBookItem extends StatelessWidget {
   const CustomDetailedBookItem({super.key, required this.product});
@@ -25,13 +27,15 @@ class CustomDetailedBookItem extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 2.5 / 4,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: Image.asset(AppAssets.book3).image,
-                    fit: BoxFit.cover,
-                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: product.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) =>
+                      const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  errorWidget: (context, url, error) =>
+                      Image.asset(AppAssets.book3, fit: BoxFit.cover),
                 ),
               ),
             ),
@@ -67,7 +71,7 @@ class CustomDetailedBookItem extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 18,),
-                      RatingWidget(mainAxisAlignment: MainAxisAlignment.center,),
+                      RatingWidget(mainAxisAlignment: MainAxisAlignment.center, rating: product.rating ?? 4.5),
                     ],
                   ),
                 ],

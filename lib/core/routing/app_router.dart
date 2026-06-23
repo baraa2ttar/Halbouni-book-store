@@ -3,6 +3,7 @@ import 'package:adv/Features/Auth/presentation/views/auth_sign_in_view.dart';
 import 'package:adv/Features/Auth/presentation/views/auth_sign_up_view.dart';
 import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/presentation/views/home_view.dart';
+import 'package:adv/Features/cart/presentation/views/cart_view.dart';
 import 'package:adv/Features/onboarding/presentation/manager/onboarding_cubit.dart';
 import 'package:adv/Features/onboarding/presentation/views/onboarding_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,6 +20,7 @@ abstract class AppRouter {
   static const kHomeView = '/homeView';
   static const kBookDetailsView = '/bookDetailsView';
   static const kSearchView = '/searchView';
+  static const kCartView = '/cartView';
   static const kOnboardingView = '/onboarding';
   static const kAuthSignIn = '/auth/sign-in';
   static const kAuthSignUp = '/auth/sign-up';
@@ -70,6 +72,10 @@ abstract class AppRouter {
       GoRoute(
         path: '/searchView',
         builder: (context, state) => const SearchView(),
+      ),
+      GoRoute(
+        path: kCartView,
+        builder: (context, state) => const CartView(),
       ),
       GoRoute(
         path: kAuthSignIn,

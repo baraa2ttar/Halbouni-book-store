@@ -10,6 +10,7 @@ class ProductEntity extends Equatable {
   final String imageUrl;
   final String categoryName;
   final bool isFeatured;
+  final double? rating;
   final BookDetailEntity? bookDetails;
 
   const ProductEntity({
@@ -20,6 +21,7 @@ class ProductEntity extends Equatable {
     required this.imageUrl,
     required this.categoryName,
     required this.isFeatured,
+    this.rating,
     this.bookDetails,
   });
 
@@ -32,6 +34,7 @@ class ProductEntity extends Equatable {
         imageUrl,
         categoryName,
         isFeatured,
+        rating,
         bookDetails,
       ];
 }
