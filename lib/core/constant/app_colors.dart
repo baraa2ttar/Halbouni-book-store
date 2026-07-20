@@ -43,7 +43,7 @@ class AppColor{
   // static const Color secondaryGreenColor = Color(0xff07D9AD);
 
 
-  static Color lightgreenColor = Color(0xffAE9B2E);
+  static Color lightgreenColor = Color(0xffBDCCE5);
   static Color lightblueColor = Color(0xffC6EFE5);
   static Color lightgrayColor = Color(0xffC4C4C4);
   static Color lightColor = Color(0xffE6F8F2);

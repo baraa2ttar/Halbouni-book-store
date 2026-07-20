@@ -25,5 +25,8 @@ class BookDetailModel extends BookDetailEntity {
         if (publisher != null) 'publisher': publisher,
         if (pageCount != null) 'page_count': pageCount,
         if (previewLink != null) 'preview_link': previewLink,
+
       };
 }
+
+
