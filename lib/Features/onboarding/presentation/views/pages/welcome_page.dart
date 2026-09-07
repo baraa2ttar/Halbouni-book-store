@@ -1,20 +1,18 @@
 import 'package:adv/core/exports/ui_exports.dart';
-import 'package:adv/core/routing/app_router.dart';
-import 'package:go_router/go_router.dart';
+import 'package:adv/core/widgets/responsive_layout.dart';
 
-import '../widgets/card_email.dart';
-import '../widgets/card_googl.dart';
-import '../widgets/dots.dart';
+import '../widgets/welcome_content.dart';
 
 class WelcomePage extends StatelessWidget {
-  final VoidCallback onGetStarted;
-
   const WelcomePage({super.key, required this.onGetStarted});
+
+  final VoidCallback onGetStarted;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           Image.asset(
             AppAssets.books_background,
@@ -36,72 +34,148 @@ class WelcomePage extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
             ),
+          ),
+          SafeArea(
+            child: ResponsiveLayout(
+              mobile: (context) => _WelcomeMobileLayout(onGetStarted: onGetStarted),
+              tablet: (context) => _WelcomeTabletLayout(onGetStarted: onGetStarted),
+              laptop: (context) => _WelcomeLaptopLayout(onGetStarted: onGetStarted),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WelcomeMobileLayout extends StatelessWidget {
+  const _WelcomeMobileLayout({required this.onGetStarted});
+
+  final VoidCallback onGetStarted;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final topSpacer = (constraints.maxHeight * 0.38).clamp(120.0, 420.0);
+
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              children: [
+                SizedBox(height: topSpacer),
+                WelcomeContent(onGetStarted: onGetStarted),
+                SizedBox(height: context.ph(16)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WelcomeTabletLayout extends StatelessWidget {
+  const _WelcomeTabletLayout({required this.onGetStarted});
+
+  final VoidCallback onGetStarted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 5,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 48),
+                child: Text(
+                  'Discover your next favorite book',
+                  style: TextStyle(
+                    fontSize: context.fs(28),
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.titleColor,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 5,
             child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 470),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Welcome to ',
-                        style: TextStyle(
-                          fontSize: context.fs(24),
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        'Halbouni',
-                        style: TextStyle(
-                          fontSize: context.fs(24),
-                          color: AppColor.primaryColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: context.h(15)),
-                  Text(
-                    "The first online Book store application in syria",
-                    style: TextStyle(color: AppColor.titleColor),
-                  ),
-                  SizedBox(height: context.h(20)),
-                  const Dots(),
-                  const SizedBox(height: 55),
-                  CardGoogle(
-                    onTap: onGetStarted,
-                    label: "Get started",
-                    backGroundColor: AppColor.primaryColor,
-                  ),
-                  const SizedBox(height: 5),
-                  CardGoogle(
-                    imagePath: AppAssets.google,
-                    label: "continue with google",
-                    backGroundColor: Colors.transparent,
-                  ),
-                  const SizedBox(height: 12),
-                  CardEmail(
-                    onTap: () => context.push(AppRouter.kAuthSignUp),
-                    label: 'Continue with email',
-                  ),
-                  const SizedBox(height: 14),
-                  InkWell(
-                    onTap: () => context.push(AppRouter.kAuthSignIn),
-                    child: Text(
-                      "I alredy have an Account",
-                      style: TextStyle(
-                        color: AppColor.primaryColor,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.primaryColor,
-                      ),
-                    ),
-                  ),
-                ],
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: context.contentMaxWidth),
+                child: WelcomeContent(onGetStarted: onGetStarted),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WelcomeLaptopLayout extends StatelessWidget {
+  const _WelcomeLaptopLayout({required this.onGetStarted});
+
+  final VoidCallback onGetStarted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 6,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome to Halbouni',
+                      style: TextStyle(
+                        fontSize: context.fs(40),
+                        fontWeight: FontWeight.w800,
+                        color: AppColor.titleColor,
+                        height: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: context.ph(16)),
+                    Text(
+                      'The first online book store application in Syria. '
+                      'Browse, discover, and order books tailored to your interests.',
+                      style: TextStyle(
+                        fontSize: context.fs(18),
+                        color: AppColor.darkGreyColor,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 5,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: context.contentMaxWidth),
+                    child: WelcomeContent(onGetStarted: onGetStarted),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

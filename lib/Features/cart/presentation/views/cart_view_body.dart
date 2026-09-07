@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/app_assets.dart';
 import '../../../../core/constant/app_text_styles.dart';
@@ -163,6 +164,7 @@ class _BottomTotalBar extends StatelessWidget {
               text: 'Checkout',
               backgroundColor: AppColor.primaryColor,
               textColor: Colors.white,
+              onPressed: () => context.push(AppRouter.kCheckoutView),
             ),
           ],
         ),

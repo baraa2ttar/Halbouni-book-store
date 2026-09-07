@@ -63,4 +63,14 @@ class CartRepoImpl implements CartRepo {
       return left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> clearCart() async {
+    try {
+      await _box.clear();
+      return right(null);
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
+    }
+  }
 }

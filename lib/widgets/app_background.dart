@@ -17,7 +17,7 @@ class AppBackground extends StatelessWidget {
     double circleSize = 200;
     double circleOffset = -80;
 
-    if (context.isDesktop) {
+    if (context.isLaptop) {
       circleSize = context.screenWidth * 0.25;
       circleOffset = -circleSize * 0.4;
     }

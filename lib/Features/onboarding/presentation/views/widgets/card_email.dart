@@ -19,12 +19,13 @@ class CardEmail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonWidth = context.buttonWidth;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        height: context.h(height),
-        width: width,
+        height: context.responsiveValue(mobile: 56.0, tablet: 60.0, laptop: 64.0),
+        width: buttonWidth,
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         decoration: BoxDecoration(
           color: backgroundColor,

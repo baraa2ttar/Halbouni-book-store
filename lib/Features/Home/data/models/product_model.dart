@@ -20,14 +20,63 @@ class ProductModel extends ProductEntity {
       name: json['name'] as String,
       description: json['description'] as String?,
       price: (json['price'] as num).toDouble(),
-      imageUrl: json['image_url'] as String,
-      categoryName: (json['categories'] as Map<String, dynamic>)['name'] as String,
-      isFeatured: json['is_featured'] as bool,
-      rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
-      bookDetails: json['book_details'] != null
-              ? BookDetailModel.fromJson(json['book_details'] as Map<String, dynamic>)
-              : null,
+      imageUrl: json['image_url'] as String? ?? '',
+      categoryName: _categoryName(json),
+      isFeatured: json['is_featured'] as bool? ?? false,
+      rating: parseRating(json),
+      bookDetails: _bookDetails(json['book_details']),
     );
+  }
+
+  /// Reads `products.rating` from Supabase (also nested / string / decimal).
+  static double? parseRating(Map<String, dynamic> json) {
+    final nested = json['book_details'];
+    final nestedMap = switch (nested) {
+      Map value => Map<String, dynamic>.from(value),
+      List list when list.isNotEmpty && list.first is Map =>
+        Map<String, dynamic>.from(list.first as Map),
+      _ => null,
+    };
+
+    for (final candidate in [
+      json['rating'],
+      json['average_rating'],
+      nestedMap?['rating'],
+      nestedMap?['average_rating'],
+    ]) {
+      final value = _toDouble(candidate);
+      if (value != null) return value;
+    }
+    return null;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim());
+    return null;
+  }
+
+  static String _categoryName(Map<String, dynamic> json) {
+    final categories = json['categories'];
+    if (categories is Map) {
+      return categories['name'] as String? ?? '';
+    }
+    if (categories is List && categories.isNotEmpty && categories.first is Map) {
+      return (categories.first as Map)['name'] as String? ?? '';
+    }
+    return json['category_name'] as String? ?? '';
+  }
+
+  static BookDetailModel? _bookDetails(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is List) {
+      if (raw.isEmpty || raw.first is! Map) return null;
+      return BookDetailModel.fromJson(Map<String, dynamic>.from(raw.first as Map));
+    }
+    if (raw is Map) {
+      return BookDetailModel.fromJson(Map<String, dynamic>.from(raw));
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() => {

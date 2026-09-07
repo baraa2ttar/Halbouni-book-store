@@ -23,13 +23,13 @@ class CardGoogle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonWidth = context.buttonWidth;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
-      child:Container(
-
-        height: context.h(65),
-        width:width,
+      child: Container(
+        height: context.responsiveValue(mobile: 56.0, tablet: 60.0, laptop: 64.0),
+        width: buttonWidth,
         decoration: BoxDecoration(
             color: backGroundColor,
             borderRadius : BorderRadius.circular(25),

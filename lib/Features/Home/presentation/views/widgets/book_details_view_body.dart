@@ -84,7 +84,10 @@ class _BookDetailsViewBodyState extends State<BookDetailsViewBody> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 120, child: RatingWidget(rating: product?.rating ?? 4.5)),
+                      SizedBox(
+                        width: 120,
+                        child: RatingWidget(rating: product?.rating ?? 0),
+                      ),
                       SizedBox(height: 45),
                       if (product != null) BooksActionButton(product: product),
                       Expanded(child: SizedBox(height: 45)),

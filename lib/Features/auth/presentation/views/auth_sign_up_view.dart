@@ -2,6 +2,8 @@ import 'package:adv/Features/Auth/presentation/manager/auth_cubit/auth_cubit.dar
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/helpers/validation_service.dart';
 import 'package:adv/core/routing/app_router.dart';
+import 'package:adv/core/services/setup_service_locator.dart';
+import 'package:adv/Features/onboarding/domain/use_cases/is_onboarding_completed_use_case.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,21 +40,21 @@ class _AuthSignUpViewState extends State<AuthSignUpView> {
       ),
       body: SafeArea(
         child: BlocConsumer<AuthCubit, AuthState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is AuthAuthenticated && state.fromSignUp) {
+              final completed =
+                  await getIt.get<IsOnboardingCompletedUseCase>()();
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    'Welcome, ${state.user.email}. Pick your interests so we can set up your profile.',
-                  ),
+                  content: Text('Welcome, ${state.user.email}.'),
                 ),
               );
-              // Populate `profiles`: land on onboarding interests (`InterestsSelectionPage`).
-              context.go(
-                AppRouter.onboardingPath(
-                  startPage: AppRouter.onboardingLastPageIndex,
-                ),
-              );
+              if (completed) {
+                context.go(AppRouter.kHomeView);
+              } else {
+                context.go(AppRouter.onboardingPath(startPage: 1));
+              }
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(state.message)),

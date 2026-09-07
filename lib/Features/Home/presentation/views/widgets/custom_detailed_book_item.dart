@@ -71,7 +71,10 @@ class CustomDetailedBookItem extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 18,),
-                      RatingWidget(mainAxisAlignment: MainAxisAlignment.center, rating: product.rating ?? 4.5),
+                      RatingWidget(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        rating: product.rating ?? 0,
+                      ),
                     ],
                   ),
                 ],

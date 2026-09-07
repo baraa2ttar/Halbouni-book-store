@@ -70,4 +70,12 @@ class CartCubit extends Cubit<CartState> {
       (_) => loadCart(),
     );
   }
+
+  Future<void> clearCart() async {
+    final result = await _cartRepo.clearCart();
+    result.fold(
+      (failure) => emit(CartFailure(failure.message)),
+      (_) => loadCart(),
+    );
+  }
 }

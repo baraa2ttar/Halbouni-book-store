@@ -1,137 +1,141 @@
 # Halbouni Book Store — Project Description
 
-This document describes the Flutter codebase as implemented in this repository.
-
 **Package name:** `adv` (`pubspec.yaml`)  
 **Branding:** Halbouni Book Store  
 **Workspace folder:** `halbouni_book_store`
 
 ---
 
-## Project overview
+## Project Overviewecho "# alburaq_app_2" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/baraa2ttar/alburaq_app_2.git
+git push -u origin main
 
-**Halbouni Book Store** is a **Flutter** app for browsing books using the **Google Books API**. It uses feature-first folders, **`go_router`** navigation, **`flutter_bloc`** (Cubit), **`get_it`** dependency injection, **Dio** for HTTP, and **Hive** for local persistence of book entities (with SharedPreferences for onboarding completion).
+**Halbouni Book Store** is a Flutter app for browsing, searching, and purchasing books. It uses **Supabase** as the backend (PostgreSQL + Auth), **Hive** for offline local cart persistence, **GoRouter** for navigation, **flutter_bloc** (Cubit) for state management, and **get_it** for dependency injection.
 
 ---
 
 ## Architecture
 
-- **Organization:** Features under `lib/Features/` (Splash, Onboarding, Home, Search). Shared code under `lib/core/` (routing, constants, errors, extensions, DI, API client).
+- **Organization:** Feature-first folders under `lib/Features/` (Splash, Onboarding, Home, Search, Cart, Auth). Shared code under `lib/core/` (routing, constants, errors, extensions, DI, services).
 
-- **Layers (where implemented):**
-  - **Presentation:** Widgets/screens + **`Cubit`** and sealed states.
-  - **Domain:** Entities (e.g. `BookEntity`), repository abstractions (`HomeRepo`, `OnboardingRepo`), and **use cases** (fetch featured/newest books, onboarding completion checks).
-  - **Data:** `HomeRepoImpl`, `OnboardingRepoImpl`; **remote** via `HomeReouteDataSourceImpl` → `ApiService`/Dio; **local** via `HomeLocalDataSourceImpl` (Hive) and `OnboardingLocalDataSource` (SharedPreferences).
+- **Layers:**
+  - **Presentation:** Widgets/screens + Cubit and sealed states.
+  - **Domain:** Entities (`ProductEntity`, `BookDetailEntity`, `CartItemModel`), repository abstractions (`HomeRepo`, `CartRepo`, `OnboardingRepo`, `AuthRepo`), and use cases (fetch featured/newest books, fetch by category, onboarding completion).
+  - **Data:** `HomeRepoImpl`, `CartRepoImpl`, `OnboardingRepoImpl`, `AuthRepoImpl` — remote via Supabase client, local via Hive/SharedPreferences.
 
-- **Dependency injection:** `get_it` in `lib/core/services/setup_service_locator.dart` registers `ApiService` (Dio), `HomeRepoImpl`, and the onboarding chain.
+- **Dependency injection:** `get_it` in `lib/core/services/setup_service_locator.dart` registers `HomeRepoImpl`, `CartRepo`, `CartCubit`, `OnboardingRepo`, `AuthCubit`.
 
-- **Navigation:** **`go_router`** paths: `/`, `/onboarding`, `/homeView`, `/bookDetailsView`, `/searchView`.  
-  **Note:** Routes generally do **not** pass **`BookEntity`** / volume IDs via **`extra`** or parameterized paths today, so book details screens cannot reflect a tapped row without further work.
-
-- **Functional style for errors:** **`dartz`** `Either<Failure, T>` from repositories into Cubits.
-
-- **Local storage caveat:** **`HomeRepoImpl`** fetches featured books from the **network** path; **`HomeLocalDataSource`** exists but is **not** wired as cache-first/stale-on-error in repository methods. **`fetchNewestBooks`** remote implementation writes newest books into Hive.
+- **Functional error style:** `dartz` `Either<Failure, T>` from repositories into Cubits. All repo methods wrapped in try/catch returning `Left(ServerFailure)` on error.
 
 ---
 
-## State management
+## Backend — Supabase
 
-| Area | Approach |
-|------|-----------|
-| **Featured books** | `FeaturedBooksCubit` + sealed `FeaturedBooksState` (initial/loading/success/failure). Success carries pagination/load-more metadata. Loaded at app startup from `MultiBlocProvider` in `main.dart`. |
-| **Newest books** | `NewestBooksCubit` + sealed states, registered globally, but **`fetchNewestBooks()` is not visibly invoked from presentation** unless added by the developer. |
-| **Onboarding** | `OnboardingCubit` + `OnboardingState` (page, gender, age index, interests, completing). `BlocProvider` is scoped only to the onboarding route. |
-| **Debugging** | `SimpleBlocObserver` attached in `main.dart`. |
+### Tables
 
-Older GetX/GetPage patterns appear only in comments/disabled snippets (e.g. legacy splash controller references).
+| Table | Columns | Notes |
+|-------|---------|-------|
+| `categories` | `id`, `name` | Lookup table for book genres |
+| `products` | `id`, `name`, `description`, `price`, `image_url`, `is_featured`, `rating`, `created_at`, `category_id` (FK → categories) | Core book data |
+| `book_details` | `id`, `product_id` (FK → products, 1:1), `author`, `isbn`, `publisher`, `page_count`, `preview_link` | Extended book info |
 
----
+### Queries
 
-## UI packages and styling
+- **Featured books:** `products.select('*, categories(name), book_details(*)').eq('is_featured', true)`
+- **Newest books:** `products.select('*, categories(name), book_details(*)').order('created_at', ascending: false).limit(20)`
+- **By category:** `products.select('*, categories!inner(name), book_details(*)').eq('categories.name', categoryName)`
+- **Search:** `products.select('*, categories(name), book_details(*)').ilike('name', '%$query%')`
+- **By ID:** `products.select('*, categories(name), book_details(*)').eq('id', productId).single()`
 
-### Layout and responsiveness
+### Auth
 
-- **`flutter_screenutil`** — design-size scaling (`ScreenUtilInit`, `.h`/`.w` extensions).
-- **`responsive_framework`** — `ResponsiveBreakpoints.builder` wraps `MaterialApp` (`responsiveBuilder` in `lib/core/extensions/size_extensions.dart`).
-- Custom **`context.sp()`** clamped scaling alongside ScreenUtil hooks.
+- Supabase Auth for sign-in / sign-up.
+- Splash screen checks `Supabase.instance.client.auth.currentSession` to route to Home or Onboarding.
 
-### Typography and colors
+### RLS Policies
 
-- **`AppColor`** in `lib/core/constant/app_colors.dart` — primary accent (`#F79201`), text neutrals, and many named colors aimed at future/general UI.
-- **`AppTextStyles`** in `lib/core/constant/app_text_styles.dart` — context-aware sizing; **`GT Sectra Fine`** is declared in **`pubspec.yaml`** fonts; theme uses **`fontFamily: 'Rubik'`** in `main.dart` (Rubik must be bundled to match).
-- **`google_fonts`** is a dependency but **runtime font download may be deliberately avoided** in theme commentary for startup/network reasons.
-
-### Media and icons
-
-- **`cached_network_image`** for thumbnails when URLs exist (`CustomListViewItem`).
-- **`flutter_svg`**, **`font_awesome_flutter`**.
-
-### Declared packages with limited bookstore use
-
-`pubspec.yaml` includes **`google_maps_flutter`**, **calendar/date** packages, **`syncfusion_flutter_gauges`**, **`http`** (alongside Dio), **`percent_indicator`**, etc., which largely read as unused or migrated from another app surface. Prefer trimming or splitting into modules for smaller APKs and faster builds.
-
-Secondary widget roots (`lib/widgets/` vs `lib/core/widgets/`) are both referenced via exports (`ui_exports.dart`).
+- `anon` role has SELECT on `products`, `categories`, `book_details` with no restrictions.
 
 ---
 
-## Feature descriptions
+## Routing — GoRouter
 
-### Splash
-
-- **Route:** `/`
-- **Behavior:** Animated logo/copy, **2-second** delay, then **`IsOnboardingCompletedUseCase`** → **`router.go`** to **home** or **onboarding**.
-
-### Onboarding
-
-- **Route:** `/onboarding`
-- **Flow:** Non-swipeable **PageView** — Welcome (hero image + gradient + CTA), gender, age, interests (**exactly four** interests to finish).
-- **Persistence:** Saves **completion** via onboarding local data layer; deeper profile fields (**gender / age / interests**) are **not** clearly persisted beyond in-memory Cubit state for API personalization unless extended.
-
-### Home
-
-- **Route:** `/homeView`
-- **Content:** Top bar with branding, search navigation, notifications button (**no handler** yet). Featured horizontal carousel from **`FeaturedBooksCubit`** calling Google Books. “Best Seller” region uses **`CustomDetailedBookBuilder`**, which is currently a **fixed placeholder list** (not **`NewestBooksCubit`**-driven).
-
-### Book details
-
-- **Route:** `/bookDetailsView`
-- **Content:** Mostly **hardcoded exemplar UI** (“The Jungle Book” style copy), rating widget, buttons, horizontal “similar” strip with placeholder images.
-
-### Search
-
-- **Route:** `/searchView`
-- **Content:** Search field UI + **`ListView`** of placeholder rows (**no live query** wired to Dio/use cases).
+| Route | Constant | Widget | Notes |
+|-------|----------|--------|-------|
+| `/` | — | `SplashView` | Animated logo → checks session → routes to Home or Onboarding |
+| `/onboarding` | `kOnboardingView` | `OnboardingScreen` | PageView: Welcome, Gender, Age, Interests (4 pages). `?startPage=N` query param |
+| `/homeView` | `kHomeView` | `HomeView` | Featured carousel, category chips, best seller list |
+| `/bookDetailsView/:id` | `kBookDetailsView` | `BookDetailsView` | Dynamic route. `ProductEntity` passed via `extra` |
+| `/searchView` | `kSearchView` | `SearchView` | Live debounced search |
+| `/cartView` | `kCartView` | `CartView` | Cart items, quantity controls, total bar |
+| `/auth/sign-in` | `kAuthSignIn` | `AuthSignInView` | Supabase email sign-in |
+| `/auth/sign-up` | `kAuthSignUp` | `AuthSignUpView` | Supabase email sign-up |
 
 ---
 
-## Incomplete / not finished areas
+## State Management — Cubits
 
-| Item | Detail |
+| Cubit | Scope | States | Purpose |
+|-------|-------|--------|---------|
+| `FeaturedBooksCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Success / Failure | Fetches featured books at app start |
+| `NewestBooksCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Success / Failure | Fetches newest books, supports category filtering |
+| `SearchCubit` | Scoped to SearchView | Initial / Loading / Success / Failure | Debounced (500ms) search via Supabase |
+| `ProductDetailsCubit` | Scoped to BookDetailsView | Initial / Loading / Success / Failure | Fetches single product by ID |
+| `CartCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Loaded / Failure | CRUD on Hive cart (load, addItem, removeItem, changeQuantity) |
+| `OnboardingCubit` | Scoped to OnboardingView | Page index, gender, age, interests, completing | Manages multi-step onboarding flow |
+| `AuthCubit` | Scoped to Auth views | Loading / Success / Failure / Initial | Supabase sign-in / sign-up |
+
+---
+
+## Local Storage — Hive
+
+| Box Name | Type | Purpose |
+|----------|------|---------|
+| `featured_box` | `Box<BookEntity>` | Caches featured books (remote data) |
+| `newest_box` | `Box<BookEntity>` | Caches newest books (remote data) |
+| `cart_box` | `Box<CartItemModel>` | Offline cart persistence (user's shopping cart) |
+
+**Hive Adapters:** `BookEntityAdapter` (typeId: 0), `CartItemModelAdapter` (typeId: 1)
+
+**SharedPreferences:** Onboarding completion flag (`isOnboardingCompleted`).
+
+---
+
+## Features — Current State
+
+### Completed
+
+- **Splash Screen:** Animated logo + sliding text, 2-second delay, checks Supabase session → routes to Home or Onboarding.
+- **Onboarding:** 4-step PageView (Welcome, Gender, Age, Interests). Completion persisted via SharedPreferences.
+- **Auth:** Supabase email sign-in / sign-up. Sign-in → Home, Sign-up → Onboarding.
+- **Home Screen:** Featured horizontal carousel (Supabase query), category filter chips (8 categories), "Best Seller" list of newest books from Supabase.
+- **Book Details:** Dynamic route with `ProductEntity` via `extra`, fallback fetch by ID, product image + name + author, dynamic rating widget, "Add to Cart" button with SnackBar.
+- **Rating:** `ProductEntity.rating` field parsed from Supabase with 4.5 default. Passed dynamically to `RatingWidget` throughout app.
+- **Similar Books:** Scoped `NewestBooksCubit` fetches books from the same category as the viewed product.
+- **Search:** Live debounced (500ms) Supabase `.ilike('name', ...)` queries with BlocBuilder UI.
+- **Cart (Offline-first):** Full Hive-backed CRUD. `CartCubit` (global) with load/add/remove/changeQuantity. Cart View with image, title, price, +/- quantity controls, bottom total bar.
+- **Navigation:** Cart icon in Home app bar and Book Details app bar, both navigate to `/cartView`.
+- **Background color:** Details page Scaffold background color documented with `[BACKGROUND COLOR]` comment for easy adjustment.
+- **Error handling:** All repo methods return `Either<Failure, T>` with try/catch fallback to `ServerFailure`.
+
+### Incomplete / Pending
+
+| Item | Status |
 |------|--------|
-| **Authentication** | Sign-in/sign-up feature paths largely removed or unfinished; **`CardGoogle`** is a styled control, not an OAuth pipeline. |
-| **Newest / best-seller UX** | `NewestBooksCubit` not driven from widgets; Hive write path exists remote-side without matching read UI. |
-| **Cache/offline UX** | `HomeLocalDataSource` unused in repository fallback strategy at time of writing. |
-| **Book navigation** | **No route arguments**: featured items **don’t navigate** with book data; list rows that push details still show generic content. |
-| **Similar books** | Placeholder data; **`ListView.builder` may lack explicit `itemCount`** in horizontal similar list widget. |
-| **Search backend** | No debounced/API-backed search Cubit/state. |
-| **Secrets hygiene** | **API key embedded** in remote data source strings — migrate to **`--dart-define`**, `.env`/CI secrets, or a backend proxy. |
-| **Product identity** | `name: adv` vs Android applicationId/bundle naming and store branding inconsistent for release polish. |
+| Checkout flow | CartView exists but no checkout/payment integration |
+| User profile | No profile screen or user data display |
+| Favorites / Wishlist | Not implemented |
+| Book preview / Read | `preview_link` stored but no in-app reader |
+| Push notifications | Not implemented |
+| Pull-to-refresh | Not on Home or Cart |
+| Pagination (load more) | Featured books has offset logic but no UI trigger |
+| Image caching edge cases | `CachedNetworkImage` used but no cache size limits configured |
+| Unused dependencies | `google_maps_flutter`, calendar packages, `syncfusion_flutter_gauges` — can be trimmed |
 
 ---
 
-## Suggested new features
-
-1. **Parameterized book navigation** (`GoRouter` `extra`, or **`/books/:volumeId`** + detail fetch) so every list row reflects real volumes.
-2. **Search implementation** wired to **`volumes?q=`** plus empty/error/offline UX.
-3. **Home sections** driven by **`NewestBooksCubit`** or unified home **`HomeFeedCubit`** with multiple sections (featured/newest/topics).
-4. **Repository caching** — Hive read on failure/stale TTL using existing `HomeLocalDataSource`.
-5. **Reading list / favorites** (Hive-first, optional backend after auth).
-6. **Persist onboarding choices** → default feed queries (“genres” from onboarding).
-7. **Book actions:** preview/link from Google Books `accessInfo`, share, semantics/large text tuning.
-8. **Lightweight reminders** → later **push/local notifications** tied to authenticated accounts.
-9. **Auth revival** → sync lists/profile; optionally real **Google Sign-In**, not cosmetic card only.
-10. **Tech debt hygiene** — remove unused heavyweight dependencies; unify widget paths; rename package for store publication.
-
----
-
-*Generated from codebase review and kept as living documentation — update sections when behaviors change.*
+*Generated from codebase review — update when behaviors change.*

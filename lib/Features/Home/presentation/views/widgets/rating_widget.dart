@@ -4,7 +4,7 @@ class RatingWidget extends StatelessWidget {
   const RatingWidget({
     super.key,
     this.mainAxisAlignment = MainAxisAlignment.start,
-    this.rating = 4.5,
+    this.rating = 0,
     this.reviewCount,
   });
 

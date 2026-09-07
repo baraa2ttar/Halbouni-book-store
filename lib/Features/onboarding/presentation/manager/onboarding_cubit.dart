@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repos/onboarding_repo.dart';
 import '../../domain/use_cases/complete_onboarding_use_case.dart';
+import '../views/pages/age_selection_page.dart';
 import 'onboarding_state.dart';
 
 class OnboardingCubit extends Cubit<OnboardingState> {
@@ -10,11 +11,32 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   OnboardingCubit(this._completeOnboarding, this._onboardingRepo)
       : super(const OnboardingState());
 
+  Future<void> restoreDraft() async {
+    final pending = await _onboardingRepo.loadPendingProfile();
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        interests: pending.interests,
+        gender: _genderFromString(pending.gender),
+        ageIndex: pending.ageIndex,
+      ),
+    );
+  }
+
   void setPageIndex(int index) => emit(state.copyWith(pageIndex: index));
 
-  void setGender(OnboardingGender gender) => emit(state.copyWith(gender: gender));
+  void setGender(OnboardingGender gender) {
+    emit(state.copyWith(gender: gender));
+    _onboardingRepo.savePendingDraft(gender: _genderToString(gender));
+  }
 
-  void setAgeIndex(int index) => emit(state.copyWith(ageIndex: index));
+  void setAgeIndex(int index) {
+    emit(state.copyWith(ageIndex: index));
+    _onboardingRepo.savePendingDraft(
+      ageIndex: index,
+      ageRange: _ageRangeFromIndex(index),
+    );
+  }
 
   void toggleInterest(String interest) {
     if (state.submitStatus == OnboardingSubmitStatus.loading) return;
@@ -32,6 +54,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         clearSubmitErrorMessage: true,
       ),
     );
+    _onboardingRepo.savePendingDraft(interests: next);
   }
 
   bool get canContinueFromInterests => state.interests.length == 4;
@@ -53,8 +76,11 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         clearSubmitErrorMessage: true,
       ),
     );
-    final result =
-        await _onboardingRepo.updateUserInterests(interests: state.interests);
+    final result = await _onboardingRepo.saveUserProfile(
+      interests: state.interests,
+      gender: _genderToString(state.gender),
+      ageRange: _ageRangeFromIndex(state.ageIndex),
+    );
     await result.fold(
       (failure) async {
         emit(
@@ -85,5 +111,28 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       emit(state.copyWith(isCompleting: false));
     }
   }
-}
 
+  String? _genderToString(OnboardingGender? gender) {
+    return switch (gender) {
+      OnboardingGender.male => 'male',
+      OnboardingGender.female => 'female',
+      OnboardingGender.notSpecified => 'not_specified',
+      null => null,
+    };
+  }
+
+  OnboardingGender? _genderFromString(String? value) {
+    return switch (value) {
+      'male' => OnboardingGender.male,
+      'female' => OnboardingGender.female,
+      'not_specified' => OnboardingGender.notSpecified,
+      _ => null,
+    };
+  }
+
+  String? _ageRangeFromIndex(int? index) {
+    if (index == null) return null;
+    if (index < 0 || index >= AgeSelectionPage.ageRanges.length) return null;
+    return AgeSelectionPage.ageRanges[index];
+  }
+}

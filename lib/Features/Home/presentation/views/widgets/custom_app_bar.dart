@@ -34,6 +34,10 @@ class CustomAppBar extends StatelessWidget {
             onPressed: () => GoRouter.of(context).push(AppRouter.kCartView),
             icon: const Icon(Icons.shopping_cart_outlined, size: 26,),
           ),
+          IconButton(
+            onPressed: () => GoRouter.of(context).push(AppRouter.kProfileView),
+            icon: const Icon(Icons.person_outline, size: 26),
+          ),
         ],
       ),
     );

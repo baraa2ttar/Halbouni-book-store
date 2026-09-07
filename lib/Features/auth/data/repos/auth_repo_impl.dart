@@ -1,13 +1,23 @@
 import 'package:adv/Features/Auth/domain/entities/auth_entity.dart';
 import 'package:adv/Features/Auth/domain/repos/auth_repo.dart';
+import 'package:adv/Features/onboarding/domain/repos/onboarding_repo.dart';
+import 'package:adv/Features/profile/domain/repos/profile_repo.dart';
 import 'package:adv/core/errors/failure.dart';
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthRepoImpl implements AuthRepo {
-  AuthRepoImpl({SupabaseClient? client}) : _client = client ?? Supabase.instance.client;
+  AuthRepoImpl({
+    SupabaseClient? client,
+    ProfileRepo? profileRepo,
+    OnboardingRepo? onboardingRepo,
+  })  : _client = client ?? Supabase.instance.client,
+        _profileRepo = profileRepo,
+        _onboardingRepo = onboardingRepo;
 
   final SupabaseClient _client;
+  final ProfileRepo? _profileRepo;
+  final OnboardingRepo? _onboardingRepo;
 
   @override
   Future<Either<Failure, AuthEntity>> signIn({
@@ -23,6 +33,8 @@ class AuthRepoImpl implements AuthRepo {
       if (user == null) {
         return left(ServerFailure('Sign in succeeded but user was not returned'));
       }
+      await _ensureProfile(user);
+      await _syncOnboardingProfile();
       return right(_mapSessionUser(user, response.session));
     } on AuthException catch (e) {
       return left(ServerFailure(e.message));
@@ -45,12 +57,39 @@ class AuthRepoImpl implements AuthRepo {
       if (user == null) {
         return left(ServerFailure('Sign up succeeded but user was not returned'));
       }
+      await _ensureProfile(user);
+      await _syncOnboardingProfile();
       return right(_mapSessionUser(user, response.session));
     } on AuthException catch (e) {
       return left(ServerFailure(e.message));
     } catch (e) {
       return left(ServerFailure(e.toString()));
     }
+  }
+
+  @override
+  Future<Either<Failure, void>> signOut() async {
+    try {
+      await _client.auth.signOut();
+      return right(null);
+    } on AuthException catch (e) {
+      return left(ServerFailure(e.message));
+    } catch (e) {
+      return left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<void> _ensureProfile(User user) async {
+    final profileRepo = _profileRepo;
+    if (profileRepo == null) return;
+    await profileRepo.ensureProfile(
+      userId: user.id,
+      email: user.email ?? '',
+    );
+  }
+
+  Future<void> _syncOnboardingProfile() async {
+    await _onboardingRepo?.syncPendingProfile();
   }
 
   AuthEntity _mapSessionUser(User user, Session? session) {
