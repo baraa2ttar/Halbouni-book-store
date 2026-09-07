@@ -17,6 +17,7 @@ git push -u origin main
 **Halbouni Book Store** is a Flutter app for browsing, searching, and purchasing books. It uses **Supabase** as the backend (PostgreSQL + Auth), **Hive** for offline local cart persistence, **GoRouter** for navigation, **flutter_bloc** (Cubit) for state management, and **get_it** for dependency injection.
 
 ---
+##mmkmkmkmkm
 
 ## Architecture
 
