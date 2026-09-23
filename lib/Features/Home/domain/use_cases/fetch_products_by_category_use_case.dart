@@ -14,7 +14,7 @@ class FetchProductsByCategoryUseCase
   @override
   Future<Either<Failure, List<ProductEntity>>> call([String? param]) async {
     return await homeRepo.fetchProductsByCategory(
-      categoryName: param ?? '',
+      categoryId: param ?? '',
     );
   }
 }

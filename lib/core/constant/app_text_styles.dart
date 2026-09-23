@@ -55,11 +55,6 @@ class AppTextStyles {
       fontSize: context.sp(20));
 
 
-  static TextStyle CardTitle(BuildContext context) => TextStyle(
-      fontWeight: FontWeight.w500,
-      color: AppColor.darkGreyColor,
-      fontSize: context.sp(14));
-
 //////////////////////////////////
 
   static const textStyle20 = TextStyle(

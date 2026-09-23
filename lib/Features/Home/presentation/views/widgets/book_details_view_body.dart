@@ -6,7 +6,7 @@ import 'package:adv/core/constant/app_text_styles.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'booksActionButton.dart';
+import 'books_action_button.dart';
 import 'custom_book_detailes_app_bar.dart';
 import 'custom_list_view_item.dart';
 
@@ -101,7 +101,7 @@ class _BookDetailsViewBodyState extends State<BookDetailsViewBody> {
                         ),
                       ),
                       SizedBox(height: 15),
-                      SimilarBooksListView(categoryName: product?.categoryName),
+                      SimilarBooksListView(categoryId: product?.categoryId),
                       SizedBox(height: 40),
                     ],
                   ),

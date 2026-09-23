@@ -16,12 +16,15 @@ final class CheckoutLoading extends CheckoutState {
 }
 
 final class CheckoutSuccess extends CheckoutState {
-  const CheckoutSuccess(this.order);
+  const CheckoutSuccess(this.order, {this.warning});
 
   final OrderEntity order;
 
+  /// Set when the order was placed but the local cart could not be cleared.
+  final String? warning;
+
   @override
-  List<Object?> get props => [order];
+  List<Object?> get props => [order, warning];
 }
 
 final class CheckoutFailure extends CheckoutState {

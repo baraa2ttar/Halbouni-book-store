@@ -1,4 +1,4 @@
-import 'package:adv/Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
+import 'package:adv/Features/auth/presentation/manager/auth_cubit/auth_cubit.dart';
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/helpers/validation_service.dart';
 import 'package:adv/core/routing/app_router.dart';

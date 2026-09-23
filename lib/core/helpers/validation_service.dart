@@ -12,7 +12,8 @@ class ValidationService {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    // Supports multi-part domains and TLDs of any length (e.g. .store, .online).
+    final emailRegex = RegExp(r'^[\w.+-]+@(?:[\w-]+\.)+[\w-]{2,}$');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
     }

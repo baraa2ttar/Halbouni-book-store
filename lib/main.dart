@@ -1,16 +1,15 @@
 import 'dart:async';
 
 import 'package:adv/Features/Home/data/repos/home_repo_impl.dart';
-import 'package:adv/Features/Home/domain/entities/book_entity.dart';
 import 'package:adv/Features/Home/domain/use_cases/fetch_featured_books_use_case.dart';
 import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:adv/core/constant/app_constants.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:adv/core/utils/app_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'Features/Home/domain/use_cases/fetch_categories_use_case.dart';
 import 'Features/Home/domain/use_cases/fetch_newest_books_use_case.dart';
 import 'Features/Home/domain/use_cases/fetch_products_by_category_use_case.dart';
 import 'Features/Home/presentation/manager/newest_books_cubit/newest_books_cubit.dart';
@@ -19,10 +18,8 @@ import 'Features/cart/presentation/manager/cart_cubit/cart_cubit.dart';
 import 'core/services/setup_service_locator.dart';
 import 'core/services/simple_bloc_observer.dart';
 
-Future<void> _openHiveBoxes() async {
+Future<void> _openCartBox() async {
   const timeout = Duration(seconds: 12);
-  await Hive.openBox<BookEntity>(kFeaturedBox).timeout(timeout);
-  await Hive.openBox<BookEntity>(kNewestBox).timeout(timeout);
   final cartBox = await Hive.openBox<CartItemModel>(kCartBox).timeout(timeout);
   getIt.registerSingleton<Box<CartItemModel>>(cartBox);
 }
@@ -37,19 +34,15 @@ Future<void> _initSupabase() async {
 
 Future<void> _initHive() async {
   await Hive.initFlutter();
-  Hive.registerAdapter(BookEntityAdapter());
   Hive.registerAdapter(CartItemModelAdapter());
   try {
-    await _openHiveBoxes();
+    await _openCartBox();
   } catch (e, st) {
-    debugPrint('Hive open failed, clearing boxes and retrying once: $e\n$st');
+    debugPrint('Hive open failed, clearing cart box and retrying once: $e\n$st');
     try {
-      await Hive.deleteBoxFromDisk(kFeaturedBox);
+      await Hive.deleteBoxFromDisk(kCartBox);
     } catch (_) {}
-    try {
-      await Hive.deleteBoxFromDisk(kNewestBox);
-    } catch (_) {}
-    await _openHiveBoxes();
+    await _openCartBox();
   }
 }
 
@@ -60,7 +53,7 @@ void main() async {
   try {
     await _initHive();
   } catch (e, st) {
-    debugPrint('Hive init failed — continuing without local cache: $e\n$st');
+    debugPrint('Hive init failed — continuing without local cart: $e\n$st');
   }
 
   try {
@@ -92,6 +85,7 @@ class MyApp extends StatelessWidget {
             return NewestBooksCubit(
               FetchNewestBooksUseCase(getIt.get<HomeRepoImpl>()),
               FetchProductsByCategoryUseCase(getIt.get<HomeRepoImpl>()),
+              FetchCategoriesUseCase(getIt.get<HomeRepoImpl>()),
             )..fetchNewestBooks();
           },
         ),
@@ -113,7 +107,7 @@ class MyApp extends StatelessWidget {
               routerConfig: AppRouter.router,
               debugShowCheckedModeBanner: false,
 
-              title: 'Graduation',
+              title: 'Halbouni Book Store',
               theme: ThemeData(
                 scaffoldBackgroundColor: AppColor.whiteColor,
                 // Avoid google_fonts runtime download on first frame (can hang offline / bad DNS).

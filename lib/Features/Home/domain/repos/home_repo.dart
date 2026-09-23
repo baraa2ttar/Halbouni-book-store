@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../entities/category_entity.dart';
 import '../entities/product_entity.dart';
 
 abstract class HomeRepo {
@@ -18,7 +19,9 @@ abstract class HomeRepo {
     required String query,
   });
 
+  Future<Either<Failure, List<CategoryEntity>>> fetchCategories();
+
   Future<Either<Failure, List<ProductEntity>>> fetchProductsByCategory({
-    required String categoryName,
+    required String categoryId,
   });
 }

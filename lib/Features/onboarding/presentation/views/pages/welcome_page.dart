@@ -1,5 +1,4 @@
 import 'package:adv/core/exports/ui_exports.dart';
-import 'package:adv/core/widgets/responsive_layout.dart';
 
 import '../widgets/welcome_content.dart';
 
@@ -15,7 +14,7 @@ class WelcomePage extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            AppAssets.books_background,
+            AppAssets.booksBackground,
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

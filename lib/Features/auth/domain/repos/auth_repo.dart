@@ -1,4 +1,4 @@
-import 'package:adv/Features/Auth/domain/entities/auth_entity.dart';
+import 'package:adv/Features/auth/domain/entities/auth_entity.dart';
 import 'package:adv/core/errors/failure.dart';
 import 'package:dartz/dartz.dart';
 

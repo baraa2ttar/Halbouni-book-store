@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adv/Features/cart/data/models/cart_item_model.dart';
 import 'package:adv/Features/cart/presentation/manager/cart_cubit/cart_cubit.dart';
 import 'package:adv/Features/orders/presentation/manager/checkout_cubit/checkout_cubit.dart';
@@ -17,9 +19,22 @@ class CheckoutView extends StatefulWidget {
 
 class _CheckoutViewState extends State<CheckoutView> {
   final _notesController = TextEditingController();
+  StreamSubscription<AuthState>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Session can change while this screen is open (e.g. sign-in redirect
+    // returns here) — rebuild so the signed-out prompt disappears.
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _notesController.dispose();
     super.dispose();
   }
@@ -73,7 +88,11 @@ class _CheckoutViewState extends State<CheckoutView> {
                     }
                     if (state is CheckoutSuccess) {
                       context.read<CartCubit>().loadCart();
-                      _showSuccessDialog(context, state.order.id);
+                      _showSuccessDialog(
+                        context,
+                        state.order.id,
+                        warning: state.warning,
+                      );
                     }
                   },
                   builder: (context, checkoutState) {
@@ -152,7 +171,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                                     : () {
                                         context.read<CheckoutCubit>().placeOrder(
                                               items: items,
-                                              total: total,
                                               notes: _notesController.text,
                                             );
                                       },
@@ -170,6 +188,8 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget _buildSignInRequired(BuildContext context) {
+    final redirect =
+        Uri.encodeComponent(AppRouter.kCheckoutView);
     return Center(
       child: Padding(
         padding: EdgeInsets.all(context.horizontalPadding),
@@ -184,7 +204,7 @@ class _CheckoutViewState extends State<CheckoutView> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: () => context.push(AppRouter.kAuthSignIn),
+              onPressed: () => context.push('${AppRouter.kAuthSignIn}?redirect=$redirect'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColor.primaryColor,
                 foregroundColor: Colors.white,
@@ -197,7 +217,10 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-  void _showSuccessDialog(BuildContext context, String orderId) {
+  void _showSuccessDialog(BuildContext context, String orderId,
+      {String? warning}) {
+    final shortId =
+        orderId.length >= 8 ? '${orderId.substring(0, 8)}...' : orderId;
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -205,7 +228,8 @@ class _CheckoutViewState extends State<CheckoutView> {
         return AlertDialog(
           title: const Text('Order placed!'),
           content: Text(
-            'Your order has been submitted and will appear in the admin dashboard.\n\nOrder ID: ${orderId.substring(0, 8)}...',
+            'Your order has been submitted and will appear in the admin dashboard.\n\nOrder ID: $shortId'
+            '${warning != null ? '\n\nNote: $warning' : ''}',
           ),
           actions: [
             TextButton(

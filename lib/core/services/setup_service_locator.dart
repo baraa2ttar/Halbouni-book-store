@@ -1,11 +1,10 @@
-import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../Features/Auth/data/repos/auth_repo_impl.dart';
-import '../../Features/Auth/domain/repos/auth_repo.dart';
-import '../../Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
+import '../../Features/auth/data/repos/auth_repo_impl.dart';
+import '../../Features/auth/domain/repos/auth_repo.dart';
+import '../../Features/auth/presentation/manager/auth_cubit/auth_cubit.dart';
 import '../../Features/Home/data/repos/home_repo_impl.dart';
 import '../../Features/Home/domain/repos/home_repo.dart';
 import '../../Features/cart/data/models/cart_item_model.dart';
@@ -23,21 +22,10 @@ import '../../Features/onboarding/domain/use_cases/is_onboarding_completed_use_c
 import '../../Features/profile/data/repos/profile_repo_impl.dart';
 import '../../Features/profile/domain/repos/profile_repo.dart';
 import '../../Features/profile/presentation/manager/profile_cubit/profile_cubit.dart';
-import 'api_service.dart';
+
 final getIt = GetIt.instance;
 
-Dio _createDio() {
-  final dio = Dio();
-  dio.options
-    ..connectTimeout = const Duration(seconds: 20)
-    ..receiveTimeout = const Duration(seconds: 30)
-    ..sendTimeout = const Duration(seconds: 20);
-  return dio;
-}
-
 void setupServiceLocator() {
-  getIt.registerSingleton<ApiService>(ApiService(_createDio()));
-
   getIt.registerLazySingleton<ProfileRepo>(() => ProfileRepoImpl());
   getIt.registerLazySingleton<OnboardingLocalDataSource>(
     () => OnboardingLocalDataSource(),

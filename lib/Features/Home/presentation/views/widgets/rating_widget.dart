@@ -29,7 +29,7 @@ class RatingWidget extends StatelessWidget {
         if (reviewCount != null) ...[
           const SizedBox(width: 6.3),
           Text(
-            "(${reviewCount})",
+            "($reviewCount)",
             style: AppTextStyles.textStyle14,
           ),
         ],

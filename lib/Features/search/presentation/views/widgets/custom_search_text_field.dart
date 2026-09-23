@@ -1,7 +1,7 @@
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../../core/exports/main_exports.dart';
+import '../../../../../core/exports/main_exports.dart';
 
 class CustomSearchTextField extends StatelessWidget {
   const CustomSearchTextField({super.key, this.onChanged});

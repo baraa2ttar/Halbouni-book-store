@@ -6,31 +6,24 @@
 
 ---
 
-## Project Overviewecho "# alburaq_app_2" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/baraa2ttar/alburaq_app_2.git
-git push -u origin main
+## Project Overview
 
-**Halbouni Book Store** is a Flutter app for browsing, searching, and purchasing books. It uses **Supabase** as the backend (PostgreSQL + Auth), **Hive** for offline local cart persistence, **GoRouter** for navigation, **flutter_bloc** (Cubit) for state management, and **get_it** for dependency injection.
+**Halbouni Book Store** is a Flutter app for browsing, searching, and purchasing books. It uses **Supabase** as the backend (PostgreSQL + Auth + RPC), **Hive** for offline local cart persistence, **GoRouter** for navigation, **flutter_bloc** (Cubit) for state management, and **get_it** for dependency injection.
 
 ---
-##mmkmkmkmkm
 
 ## Architecture
 
-- **Organization:** Feature-first folders under `lib/Features/` (Splash, Onboarding, Home, Search, Cart, Auth). Shared code under `lib/core/` (routing, constants, errors, extensions, DI, services).
+- **Organization:** Feature-first folders under `lib/Features/` (Splash, Onboarding, Home, Search, Cart, Auth, Orders, Profile). Shared code under `lib/core/` (routing, constants, errors, exports, extensions, helpers, services).
 
 - **Layers:**
   - **Presentation:** Widgets/screens + Cubit and sealed states.
-  - **Domain:** Entities (`ProductEntity`, `BookDetailEntity`, `CartItemModel`), repository abstractions (`HomeRepo`, `CartRepo`, `OnboardingRepo`, `AuthRepo`), and use cases (fetch featured/newest books, fetch by category, onboarding completion).
-  - **Data:** `HomeRepoImpl`, `CartRepoImpl`, `OnboardingRepoImpl`, `AuthRepoImpl` — remote via Supabase client, local via Hive/SharedPreferences.
+  - **Domain:** Entities (`ProductEntity`, `BookDetailEntity`, `CategoryEntity`, `OrderEntity`, `CartItemModel`), repository abstractions (`HomeRepo`, `CartRepo`, `OrdersRepo`, `AuthRepo`, `OnboardingRepo`, `ProfileRepo`), and use cases (featured/newest books, categories, by-category, onboarding).
+  - **Data:** `HomeRepoImpl`, `CartRepoImpl`, `OrdersRepoImpl`, `AuthRepoImpl`, `ProfileRepoImpl` — remote via Supabase client, local via Hive/SharedPreferences.
 
-- **Dependency injection:** `get_it` in `lib/core/services/setup_service_locator.dart` registers `HomeRepoImpl`, `CartRepo`, `CartCubit`, `OnboardingRepo`, `AuthCubit`.
+- **Dependency injection:** `get_it` in `lib/core/services/setup_service_locator.dart` registers `HomeRepo`, `HomeRepoImpl`, `CartRepo`, `CartCubit`, `OrdersRepo`, `CheckoutCubit`, `AuthCubit`, `ProfileCubit`, onboarding repos/use cases.
 
-- **Functional error style:** `dartz` `Either<Failure, T>` from repositories into Cubits. All repo methods wrapped in try/catch returning `Left(ServerFailure)` on error.
+- **Functional error style:** `dartz` `Either<Failure, T>` from repositories into Cubits. Repos catch thrown errors and return `Left(ServerFailure(failureMessage(e)))` — user-facing messages only, never raw stack traces.
 
 ---
 
@@ -40,26 +33,44 @@ git push -u origin main
 
 | Table | Columns | Notes |
 |-------|---------|-------|
-| `categories` | `id`, `name` | Lookup table for book genres |
-| `products` | `id`, `name`, `description`, `price`, `image_url`, `is_featured`, `rating`, `created_at`, `category_id` (FK → categories) | Core book data |
-| `book_details` | `id`, `product_id` (FK → products, 1:1), `author`, `isbn`, `publisher`, `page_count`, `preview_link` | Extended book info |
+| `categories` | `id`, `name` | Lookup table for book genres — referenced by **id**, not name |
+| `products` | `id`, `name`, `description`, `price`, `image_url`, `category_id` (FK → categories), `is_featured`, `is_active`, `rating`, `created_at` | `is_active` is a soft-delete flag |
+| `book_details` | `product_id` (FK, 1:1), `author`, `isbn`, `publisher`, `page_count`, `preview_link` | Extended book info |
+| `orders` | `id`, `user_id`, `total`, `status`, `notes`, `created_at` | `total` is **server-computed** by the `place_order` RPC |
+| `order_items` | `order_id`, `product_id`, `quantity`, `price` | Inserted atomically by the RPC |
 
-### Queries
+### Queries (client-side rules)
 
-- **Featured books:** `products.select('*, categories(name), book_details(*)').eq('is_featured', true)`
-- **Newest books:** `products.select('*, categories(name), book_details(*)').order('created_at', ascending: false).limit(20)`
-- **By category:** `products.select('*, categories!inner(name), book_details(*)').eq('categories.name', categoryName)`
-- **Search:** `products.select('*, categories(name), book_details(*)').ilike('name', '%$query%')`
-- **By ID:** `products.select('*, categories(name), book_details(*)').eq('id', productId).single()`
+- All end-user product queries filter **`.eq('is_active', true)`** (featured, newest, by-category, search, by-id).
+- **Featured:** `.eq('is_featured', true).eq('is_active', true).order('created_at').range(page*10, page*10+9)` — deterministic order for pagination.
+- **Newest:** `.eq('is_active', true).order('created_at', descending).limit(20)`.
+- **By category:** `.eq('category_id', <uuid>).eq('is_active', true)`.
+- **Search:** `.eq('is_active', true).ilike('name', '%$query%')`.
+- **By ID:** `.eq('id', productId).eq('is_active', true).maybeSingle()` → missing product returns a friendly `Product not found` failure.
+- **Categories:** `categories.select('id, name').order('name')`.
+
+### Placing an order — `place_order` RPC
+
+Orders are created **only** through the server-side RPC; the client never writes to `orders` / `order_items` and never sends prices or totals:
+
+```dart
+await supabase.rpc('place_order', params: {
+  'items': [
+    {'product_id': '<uuid>', 'quantity': 1},
+  ],
+  'order_notes': 'optional text or null',
+});
+```
+
+- Returns the new order UUID.
+- Server validates stock, computes `total`/`price` server-side, and inserts order + items atomically.
+- RPC errors (`raise exception`) arrive as a JSON envelope inside `PostgrestException.message` — `OrdersRepoImpl` unwraps it (`jsonDecode` → `message`) so users see the real reason (e.g. out-of-stock text).
 
 ### Auth
 
 - Supabase Auth for sign-in / sign-up.
 - Splash screen checks `Supabase.instance.client.auth.currentSession` to route to Home or Onboarding.
-
-### RLS Policies
-
-- `anon` role has SELECT on `products`, `categories`, `book_details` with no restrictions.
+- Checkout listens to `onAuthStateChange` so a sign-in started with `?redirect=/checkout` lands back on checkout with a live session.
 
 ---
 
@@ -68,12 +79,14 @@ git push -u origin main
 | Route | Constant | Widget | Notes |
 |-------|----------|--------|-------|
 | `/` | — | `SplashView` | Animated logo → checks session → routes to Home or Onboarding |
-| `/onboarding` | `kOnboardingView` | `OnboardingScreen` | PageView: Welcome, Gender, Age, Interests (4 pages). `?startPage=N` query param |
-| `/homeView` | `kHomeView` | `HomeView` | Featured carousel, category chips, best seller list |
+| `/onboarding` | `kOnboardingView` | `OnboardingScreen` | PageView: Welcome, Gender, Age, Interests. `?startPage=N` query param |
+| `/homeView` | `kHomeView` | `HomeView` | Featured carousel, category chips (from DB), best seller list |
 | `/bookDetailsView/:id` | `kBookDetailsView` | `BookDetailsView` | Dynamic route. `ProductEntity` passed via `extra` |
 | `/searchView` | `kSearchView` | `SearchView` | Live debounced search |
 | `/cartView` | `kCartView` | `CartView` | Cart items, quantity controls, total bar |
-| `/auth/sign-in` | `kAuthSignIn` | `AuthSignInView` | Supabase email sign-in |
+| `/checkout` | `kCheckoutView` | `CheckoutView` | Order summary + notes → `place_order` RPC |
+| `/profile` | `kProfileView` | `ProfileView` | User info, interest-based recommendations, sign-out |
+| `/auth/sign-in` | `kAuthSignIn` | `AuthSignInView` | Supabase email sign-in. `?redirect=<path>` returns there after login |
 | `/auth/sign-up` | `kAuthSignUp` | `AuthSignUpView` | Supabase email sign-up |
 
 ---
@@ -82,13 +95,15 @@ git push -u origin main
 
 | Cubit | Scope | States | Purpose |
 |-------|-------|--------|---------|
-| `FeaturedBooksCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Success / Failure | Fetches featured books at app start |
-| `NewestBooksCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Success / Failure | Fetches newest books, supports category filtering |
-| `SearchCubit` | Scoped to SearchView | Initial / Loading / Success / Failure | Debounced (500ms) search via Supabase |
+| `FeaturedBooksCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Success / Failure | Featured books with infinite scroll (loadMore + hasReachedMax) |
+| `NewestBooksCubit` | Global (`MultiBlocProvider`) + scoped in `SimilarBooksListView` | Initial / Loading / Success (books + categories + activeCategoryId) / Failure | Newest books, category filtering by **id**, loads DB categories once, stale-response guard |
+| `SearchCubit` | Scoped to SearchView | Initial / Loading / Success / Failure | Debounced (500 ms) search with stale-response guard |
 | `ProductDetailsCubit` | Scoped to BookDetailsView | Initial / Loading / Success / Failure | Fetches single product by ID |
-| `CartCubit` | Global (`MultiBlocProvider`) | Initial / Loading / Loaded / Failure | CRUD on Hive cart (load, addItem, removeItem, changeQuantity) |
-| `OnboardingCubit` | Scoped to OnboardingView | Page index, gender, age, interests, completing | Manages multi-step onboarding flow |
-| `AuthCubit` | Scoped to Auth views | Loading / Success / Failure / Initial | Supabase sign-in / sign-up |
+| `CartCubit` | Global | Initial / Loading / Loaded / Failure | Hive cart CRUD; recovers from non-loaded state in add/change |
+| `CheckoutCubit` | Scoped to CheckoutView (factory) | Initial / Loading / Success (+optional warning) / Failure | Places order via RPC; double-submit guard; emits Success even if local cart clear fails |
+| `OnboardingCubit` | Scoped to OnboardingScreen | Page index, gender, age, interests, completing | Multi-step onboarding flow |
+| `AuthCubit` | Scoped to Auth views | Initial / Loading / Authenticated / Error | Supabase sign-in / sign-up |
+| `ProfileCubit` | Scoped to ProfileView | Initial / Loading / Loaded / SigningOut / SignedOut / Failure | Profile + maps interest **names → category ids** for recommendations |
 
 ---
 
@@ -96,46 +111,46 @@ git push -u origin main
 
 | Box Name | Type | Purpose |
 |----------|------|---------|
-| `featured_box` | `Box<BookEntity>` | Caches featured books (remote data) |
-| `newest_box` | `Box<BookEntity>` | Caches newest books (remote data) |
-| `cart_box` | `Box<CartItemModel>` | Offline cart persistence (user's shopping cart) |
+| `cart_box` | `Box<CartItemModel>` | Offline cart persistence |
 
-**Hive Adapters:** `BookEntityAdapter` (typeId: 0), `CartItemModelAdapter` (typeId: 1)
+**Hive Adapter:** `CartItemModelAdapter` (typeId: 1).
 
-**SharedPreferences:** Onboarding completion flag (`isOnboardingCompleted`).
+**SharedPreferences:** Onboarding completion flag.
+
+> The old `featured_box` / `newest_box` cache and `BookEntity` were removed — the app always fetches fresh data from Supabase.
 
 ---
 
-## Features — Current State
+## Configuration
 
-### Completed
+`lib/core/constant/supabase_config.dart` reads build-time values with compile-time fallbacks:
 
-- **Splash Screen:** Animated logo + sliding text, 2-second delay, checks Supabase session → routes to Home or Onboarding.
-- **Onboarding:** 4-step PageView (Welcome, Gender, Age, Interests). Completion persisted via SharedPreferences.
-- **Auth:** Supabase email sign-in / sign-up. Sign-in → Home, Sign-up → Onboarding.
-- **Home Screen:** Featured horizontal carousel (Supabase query), category filter chips (8 categories), "Best Seller" list of newest books from Supabase.
-- **Book Details:** Dynamic route with `ProductEntity` via `extra`, fallback fetch by ID, product image + name + author, dynamic rating widget, "Add to Cart" button with SnackBar.
-- **Rating:** `ProductEntity.rating` field parsed from Supabase with 4.5 default. Passed dynamically to `RatingWidget` throughout app.
-- **Similar Books:** Scoped `NewestBooksCubit` fetches books from the same category as the viewed product.
-- **Search:** Live debounced (500ms) Supabase `.ilike('name', ...)` queries with BlocBuilder UI.
-- **Cart (Offline-first):** Full Hive-backed CRUD. `CartCubit` (global) with load/add/remove/changeQuantity. Cart View with image, title, price, +/- quantity controls, bottom total bar.
-- **Navigation:** Cart icon in Home app bar and Book Details app bar, both navigate to `/cartView`.
-- **Background color:** Details page Scaffold background color documented with `[BACKGROUND COLOR]` comment for easy adjustment.
-- **Error handling:** All repo methods return `Either<Failure, T>` with try/catch fallback to `ServerFailure`.
+```
+--dart-define=SUPABASE_URL=...
+--dart-define=SUPABASE_ANON_KEY=...
+```
 
-### Incomplete / Pending
+`AppConfig.validate()` fails fast at startup if no URL/key is configured.
+
+---
+
+## Removed / Dead Code (this cleanup)
+
+- Google Books data source (`home_remoute_data_source.dart`), `api_service.dart`, `crud.dart`, `status_class.dart`, `check_internet.dart`, `app_link.dart`, `initial_binding.dart`, `services.dart`, GetX controllers/pages, unused `lib/widgets/*` (navbar/background/button/map/general-info), unused loading indicators, duplicate `book_model/*`, `book_entity(.g)`, duplicate onboarding `genre.dart`.
+- Dependencies `dio`, `http`, `google_maps_flutter` removed from `pubspec.yaml`.
+- Dead GetX `GetPage` comments and Get-Put comments removed from router/splash.
+
+---
+
+## Pending / Not Implemented
 
 | Item | Status |
 |------|--------|
-| Checkout flow | CartView exists but no checkout/payment integration |
-| User profile | No profile screen or user data display |
 | Favorites / Wishlist | Not implemented |
 | Book preview / Read | `preview_link` stored but no in-app reader |
 | Push notifications | Not implemented |
 | Pull-to-refresh | Not on Home or Cart |
-| Pagination (load more) | Featured books has offset logic but no UI trigger |
-| Image caching edge cases | `CachedNetworkImage` used but no cache size limits configured |
-| Unused dependencies | `google_maps_flutter`, calendar packages, `syncfusion_flutter_gauges` — can be trimmed |
+| Admin dashboard | Consumes `orders` table directly (out of scope for this app) |
 
 ---
 

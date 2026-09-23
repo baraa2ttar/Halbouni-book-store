@@ -22,14 +22,18 @@ class CartCubit extends Cubit<CartState> {
   }
 
   Future<void> addItem(ProductEntity product) async {
-    final currentState = state;
-    if (currentState is CartLoaded) {
-      final existingIndex =
-          currentState.items.indexWhere((item) => item.id == product.id);
-      if (existingIndex != -1) {
-        await changeQuantity(product.id, 1);
-        return;
-      }
+    var currentState = state;
+    if (currentState is! CartLoaded) {
+      await _ensureLoaded();
+      currentState = state;
+    }
+    if (currentState is! CartLoaded) return;
+
+    final existingIndex =
+        currentState.items.indexWhere((item) => item.id == product.id);
+    if (existingIndex != -1) {
+      await changeQuantity(product.id, 1);
+      return;
     }
 
     final item = CartItemModel.fromProductEntity(product);
@@ -49,7 +53,11 @@ class CartCubit extends Cubit<CartState> {
   }
 
   Future<void> changeQuantity(String productId, int delta) async {
-    final currentState = state;
+    var currentState = state;
+    if (currentState is! CartLoaded) {
+      await _ensureLoaded();
+      currentState = state;
+    }
     if (currentState is! CartLoaded) return;
 
     final existingIndex =
@@ -68,6 +76,17 @@ class CartCubit extends Cubit<CartState> {
     result.fold(
       (failure) => emit(CartFailure(failure.message)),
       (_) => loadCart(),
+    );
+  }
+
+  /// Loads the cart when the cubit hasn't been loaded yet (e.g. addItem /
+  /// changeQuantity called before loadCart completed).
+  Future<void> _ensureLoaded() async {
+    emit(CartLoading());
+    final result = await _cartRepo.fetchCartItems();
+    result.fold(
+      (failure) => emit(CartFailure(failure.message)),
+      (items) => emit(CartLoaded(items)),
     );
   }
 

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/constant/app_text_styles.dart';
 import '../../../../../core/exports/main_exports.dart';
-import '../../../../../core/routing/app_router.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({super.key});

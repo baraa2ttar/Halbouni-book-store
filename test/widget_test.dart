@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:adv/main.dart';
-import 'package:flutter/material.dart';
+import 'package:adv/core/helpers/validation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget( MyApp());
+  group('ValidationService.email', () {
+    test('accepts standard email addresses', () {
+      expect(ValidationService.email('user@example.com'), isNull);
+      expect(ValidationService.email('first.last@sub.domain.org'), isNull);
+      expect(ValidationService.email('user+tag@domain.co'), isNull);
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('accepts long TLDs such as .store and .online', () {
+      expect(ValidationService.email('reader@publisher.store'), isNull);
+      expect(ValidationService.email('reader@shop.online'), isNull);
+      expect(ValidationService.email('a@b.museum'), isNull);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('rejects empty or whitespace-only values', () {
+      expect(ValidationService.email(null), 'Email is required');
+      expect(ValidationService.email(''), 'Email is required');
+      expect(ValidationService.email('   '), 'Email is required');
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('rejects malformed addresses', () {
+      const invalid = 'Enter a valid email address';
+      expect(ValidationService.email('plainaddress'), invalid);
+      expect(ValidationService.email('user@'), invalid);
+      expect(ValidationService.email('@domain.com'), invalid);
+      expect(ValidationService.email('user@domain'), invalid);
+      expect(ValidationService.email('user name@domain.com'), invalid);
+    });
   });
 }

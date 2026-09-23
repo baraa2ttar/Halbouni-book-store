@@ -13,26 +13,31 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   final OrdersRepo _ordersRepo;
   final CartRepo _cartRepo;
 
+  bool _submitting = false;
+
   Future<void> placeOrder({
     required List<CartItemModel> items,
-    required double total,
     String? notes,
   }) async {
+    if (_submitting) return;
+    _submitting = true;
     emit(const CheckoutLoading());
-    final result = await _ordersRepo.createOrder(
-      items: items,
-      total: total,
-      notes: notes,
-    );
-    await result.fold(
-      (failure) async => emit(CheckoutFailure(failure.message)),
-      (order) async {
-        final clearResult = await _cartRepo.clearCart();
-        clearResult.fold(
-          (failure) => emit(CheckoutFailure(failure.message)),
-          (_) => emit(CheckoutSuccess(order)),
-        );
-      },
-    );
+
+    try {
+      final result = await _ordersRepo.createOrder(items: items, notes: notes);
+      await result.fold(
+        (failure) async => emit(CheckoutFailure(failure.message)),
+        (order) async {
+          final clearResult = await _cartRepo.clearCart();
+          final warning = clearResult.fold(
+            (failure) => failure.message,
+            (_) => null,
+          );
+          emit(CheckoutSuccess(order, warning: warning));
+        },
+      );
+    } finally {
+      _submitting = false;
+    }
   }
 }

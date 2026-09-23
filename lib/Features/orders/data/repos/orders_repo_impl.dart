@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:adv/Features/cart/data/models/cart_item_model.dart';
 import 'package:adv/Features/orders/domain/entities/order_entity.dart';
 import 'package:adv/Features/orders/domain/repos/orders_repo.dart';
@@ -14,7 +16,6 @@ class OrdersRepoImpl implements OrdersRepo {
   @override
   Future<Either<Failure, OrderEntity>> createOrder({
     required List<CartItemModel> items,
-    required double total,
     String? notes,
   }) async {
     try {
@@ -26,45 +27,78 @@ class OrdersRepoImpl implements OrdersRepo {
         return left(ServerFailure('Your cart is empty'));
       }
 
+      // Server-side `place_order` RPC validates stock, computes totals, and
+      // inserts the order + items atomically. Client never sends price/total.
+      final orderId = await _client.rpc(
+        'place_order',
+        params: {
+          'items': [
+            for (final item in items)
+              {'product_id': item.id, 'quantity': item.quantity},
+          ],
+          'order_notes': (notes == null || notes.trim().isEmpty)
+              ? null
+              : notes.trim(),
+        },
+      );
+
+      final id = orderId is String && orderId.isNotEmpty
+          ? orderId
+          : (orderId as String?) ?? '';
+      if (id.isEmpty) {
+        return left(ServerFailure('Order was not created. Please try again.'));
+      }
+
       final orderRow = await _client
           .from('orders')
-          .insert({
-            'user_id': user.id,
-            'total': total,
-            'status': 'pending',
-            if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
-          })
           .select()
-          .single();
+          .eq('id', id)
+          .maybeSingle();
 
-      final orderId = orderRow['id'] as String;
-
-      final orderItems = items
-          .map(
-            (item) => {
-              'order_id': orderId,
-              'product_id': item.id,
-              'quantity': item.quantity,
-              'price': item.price,
-            },
-          )
-          .toList();
-
-      await _client.from('order_items').insert(orderItems);
+      if (orderRow == null) {
+        return right(
+          OrderEntity(
+            id: id,
+            userId: user.id,
+            total: 0,
+            status: 'pending',
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
 
       return right(
         OrderEntity(
-          id: orderId,
-          userId: user.id,
-          total: (orderRow['total'] as num).toDouble(),
+          id: orderRow['id'] as String,
+          userId: orderRow['user_id'] as String? ?? user.id,
+          total: ((orderRow['total'] as num?) ?? 0).toDouble(),
           status: orderRow['status'] as String? ?? 'pending',
-          createdAt: DateTime.parse(orderRow['created_at'] as String),
+          createdAt:
+              DateTime.tryParse(orderRow['created_at'] as String? ?? '') ??
+                  DateTime.now(),
         ),
       );
     } on PostgrestException catch (e) {
-      return left(ServerFailure(e.message));
+      return left(ServerFailure(_rpcErrorMessage(e)));
     } catch (e) {
-      return left(ServerFailure(e.toString()));
+      return left(ServerFailure(failureMessage(e)));
     }
+  }
+
+  /// Postgrest surfaces RPC `raise exception` payloads as a JSON string inside
+  /// `message` — unwrap it so users see the real server-side message.
+  static String _rpcErrorMessage(PostgrestException e) {
+    final raw = e.message.trim();
+    if (raw.isEmpty) return failureMessage(e);
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        final message = decoded['message'];
+        if (message is String && message.isNotEmpty) return message;
+      }
+    } catch (_) {
+      // Not JSON — surface the raw message as-is.
+    }
+    return raw;
   }
 }

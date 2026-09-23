@@ -9,7 +9,10 @@ class SearchCubit extends Cubit<SearchState> {
 
   final HomeRepo _homeRepo;
 
+  int _requestId = 0;
+
   Future<void> search(String query) async {
+    final requestId = ++_requestId;
     if (query.trim().isEmpty) {
       emit(SearchInitial());
       return;
@@ -17,6 +20,10 @@ class SearchCubit extends Cubit<SearchState> {
 
     emit(SearchLoading());
     final result = await _homeRepo.searchProducts(query: query.trim());
+
+    // Ignore stale responses from superseded queries.
+    if (requestId != _requestId) return;
+
     result.fold(
       (failure) => emit(SearchFailure(failure.message)),
       (products) => emit(SearchSuccess(products)),

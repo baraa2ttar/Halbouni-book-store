@@ -1,5 +1,5 @@
-import 'package:adv/Features/Auth/domain/entities/auth_entity.dart';
-import 'package:adv/Features/Auth/domain/repos/auth_repo.dart';
+import 'package:adv/Features/auth/domain/entities/auth_entity.dart';
+import 'package:adv/Features/auth/domain/repos/auth_repo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'auth_state.dart';

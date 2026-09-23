@@ -2,7 +2,7 @@ class AppAssets {
   // images
   static String rootImg = 'assets/images';
   static String appLogo = '$rootImg/app_logo.png';
-  static String books_background = '$rootImg/books_background.png';
+  static String booksBackground = '$rootImg/books_background.png';
   static String google = '$rootImg/google_icon.png';
 
 

@@ -6,7 +6,6 @@ import 'package:dartz/dartz.dart';
 abstract interface class OrdersRepo {
   Future<Either<Failure, OrderEntity>> createOrder({
     required List<CartItemModel> items,
-    required double total,
     String? notes,
   });
 }

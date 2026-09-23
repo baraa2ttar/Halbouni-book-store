@@ -2,7 +2,7 @@ import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/feat
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/exports/main_exports.dart';
-import 'FeaturedListView.dart';
+import 'featured_list_view.dart';
 
 class FeaturedBooksListViewBlocBuilder extends StatelessWidget {
   const FeaturedBooksListViewBlocBuilder({

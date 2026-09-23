@@ -3,15 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/exports/ui_exports.dart';
 import '../../../../../core/services/setup_service_locator.dart';
 import '../../../data/repos/home_repo_impl.dart';
+import '../../../domain/use_cases/fetch_categories_use_case.dart';
 import '../../../domain/use_cases/fetch_newest_books_use_case.dart';
 import '../../../domain/use_cases/fetch_products_by_category_use_case.dart';
 import '../../manager/newest_books_cubit/newest_books_cubit.dart';
 import 'custom_list_view_item.dart';
 
 class SimilarBooksListView extends StatefulWidget {
-  const SimilarBooksListView({super.key, this.categoryName});
+  const SimilarBooksListView({super.key, this.categoryId});
 
-  final String? categoryName;
+  final String? categoryId;
 
   @override
   State<SimilarBooksListView> createState() => _SimilarBooksListViewState();
@@ -27,7 +28,8 @@ class _SimilarBooksListViewState extends State<SimilarBooksListView> {
     _cubit = NewestBooksCubit(
       FetchNewestBooksUseCase(repo),
       FetchProductsByCategoryUseCase(repo),
-    )..fetchNewestBooks(categoryName: widget.categoryName);
+      FetchCategoriesUseCase(repo),
+    )..fetchNewestBooks(categoryId: widget.categoryId);
   }
 
   @override

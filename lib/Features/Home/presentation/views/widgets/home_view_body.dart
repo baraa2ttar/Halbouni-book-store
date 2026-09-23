@@ -1,23 +1,13 @@
+import 'package:adv/Features/Home/domain/entities/category_entity.dart';
 import 'package:adv/Features/Home/presentation/manager/newest_books_cubit/newest_books_cubit.dart';
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'CustomDetailedBookBuilder.dart';
 import 'custom_app_bar.dart';
+import 'custom_detailed_book_builder.dart';
 import 'featured_books_listview_builder.dart';
 
 class HomeViewBody extends StatelessWidget {
   const HomeViewBody({super.key});
-
-  static const _categories = [
-    'All',
-    'Romance',
-    'Fantasy',
-    'Sci-Fi',
-    'Horror',
-    'Thriller',
-    'Adventure',
-    'Biography',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -60,29 +50,33 @@ class HomeViewBody extends StatelessWidget {
 class _CategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final active = context.watch<NewestBooksCubit>().activeCategory;
+    final cubit = context.watch<NewestBooksCubit>();
+    final active = cubit.activeCategoryId;
+
+    final items = <({String? id, String label})>[
+      const (id: null, label: 'All'),
+      ...cubit.categories.map((CategoryEntity c) => (id: c.id, label: c.name)),
+    ];
+
     return SizedBox(
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 30),
-        itemCount: HomeViewBody._categories.length,
+        itemCount: items.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = HomeViewBody._categories[index];
-          final isAll = category == 'All';
-          final isSelected = isAll
-              ? active == null
-              : active == category;
+          final item = items[index];
+          final isSelected = active == item.id;
 
           return GestureDetector(
             onTap: () {
               context.read<NewestBooksCubit>().fetchNewestBooks(
-                categoryName: isAll ? null : category,
-              );
+                    categoryId: item.id,
+                  );
             },
             child: Chip(
-              label: Text(category),
+              label: Text(item.label),
               backgroundColor:
                   isSelected ? AppColor.primaryColor : Colors.grey[200],
               labelStyle: TextStyle(
@@ -99,5 +93,3 @@ class _CategoryChips extends StatelessWidget {
     );
   }
 }
-
-

@@ -5,8 +5,8 @@ import 'package:adv/Features/search/presentation/manager/search_cubit/search_cub
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/constant/app_text_styles.dart';
-import '../../../Home/presentation/views/widgets/custom_detailed_book_item.dart';
+import '../../../../../core/constant/app_text_styles.dart';
+import '../../../../Home/presentation/views/widgets/custom_detailed_book_item.dart';
 import 'custom_search_text_field.dart';
 
 class SearchViewBody extends StatefulWidget {

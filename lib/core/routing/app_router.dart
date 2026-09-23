@@ -1,6 +1,6 @@
-import 'package:adv/Features/Auth/presentation/manager/auth_cubit/auth_cubit.dart';
-import 'package:adv/Features/Auth/presentation/views/auth_sign_in_view.dart';
-import 'package:adv/Features/Auth/presentation/views/auth_sign_up_view.dart';
+import 'package:adv/Features/auth/presentation/manager/auth_cubit/auth_cubit.dart';
+import 'package:adv/Features/auth/presentation/views/auth_sign_in_view.dart';
+import 'package:adv/Features/auth/presentation/views/auth_sign_up_view.dart';
 import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/presentation/views/home_view.dart';
 import 'package:adv/Features/cart/presentation/views/cart_view.dart';
@@ -14,7 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../Features/Home/presentation/views/book_details_view.dart';
-import '../../Features/search/views/search_view.dart';
+import '../../Features/search/presentation/views/search_view.dart';
 import '../../Features/splash/presentation/views/splash_view.dart';
 import '../../Features/onboarding/domain/repos/onboarding_repo.dart';
 import '../services/setup_service_locator.dart';
@@ -123,11 +123,3 @@ abstract class AppRouter {
   );
 }
 
-// final List<GetPage> appPages = [
-//   GetPage(name: Routes.onboarding, page: () => OnboardingScreen()),
-//   GetPage(name: Routes.splash, page: () => SplashView()),
-//   // GetPage(name: Routes.signUp, page: () => SignUpScreen()),
-//   // GetPage(name: Routes.signIn, page: () => SignInScreen()),
-//   //GetPage(name: Routes.home, page: () => const HomeMainScreen()),
-//   // GetPage(name: Routes.login, page: () =>  LoginScreen()),
-// ];

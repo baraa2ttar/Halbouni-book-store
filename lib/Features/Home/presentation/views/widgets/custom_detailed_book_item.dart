@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../core/constant/app_assets.dart';
 import '../../../../../core/exports/main_exports.dart';
 import '../../../../../core/exports/ui_exports.dart';
 import '../../../domain/entities/product_entity.dart';
