@@ -4,6 +4,11 @@ import 'package:dartz/dartz.dart';
 import '../entities/pending_onboarding_profile.dart';
 
 abstract class OnboardingRepo {
+  /// Whether a Supabase session currently exists. Used to decide whether
+  /// onboarding choices can be pushed to the backend immediately or must
+  /// wait for the user to create an account.
+  bool get isSignedIn;
+
   Future<bool> isCompleted();
   Future<void> setCompleted(bool value);
   Future<Either<Failure, void>> saveUserProfile({

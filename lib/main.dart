@@ -110,7 +110,7 @@ class MyApp extends StatelessWidget {
               title: 'Halbouni Book Store',
               theme: ThemeData(
                 scaffoldBackgroundColor: AppColor.whiteColor,
-                // Avoid google_fonts runtime download on first frame (can hang offline / bad DNS).
+                // App font. Fall back to the bundled assets/fonts/ if custom fonts are added later.
                 fontFamily: 'Rubik',
                 useMaterial3: true,
               ),

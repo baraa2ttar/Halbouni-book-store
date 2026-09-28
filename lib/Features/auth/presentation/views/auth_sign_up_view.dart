@@ -4,6 +4,7 @@ import 'package:adv/core/helpers/validation_service.dart';
 import 'package:adv/core/routing/app_router.dart';
 import 'package:adv/core/services/setup_service_locator.dart';
 import 'package:adv/Features/onboarding/domain/use_cases/is_onboarding_completed_use_case.dart';
+import 'package:adv/Features/onboarding/domain/use_cases/complete_onboarding_use_case.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,14 +43,29 @@ class _AuthSignUpViewState extends State<AuthSignUpView> {
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) async {
             if (state is AuthAuthenticated && state.fromSignUp) {
-              final completed =
-                  await getIt.get<IsOnboardingCompletedUseCase>()();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Welcome, ${state.user.email}.'),
                 ),
               );
+
+              final completeOnboarding =
+                  AppRouter.parseCompleteOnboarding(GoRouterState.of(context));
+              if (completeOnboarding) {
+                // The 4 interests picked before sign-up were already synced
+                // to `profiles` by AuthRepoImpl.signUp()'s automatic
+                // syncPendingProfile() call — just mark onboarding done and
+                // go straight to Home instead of resuming the page flow.
+                await getIt.get<CompleteOnboardingUseCase>()();
+                if (!context.mounted) return;
+                context.go(AppRouter.kHomeView);
+                return;
+              }
+
+              final completed =
+                  await getIt.get<IsOnboardingCompletedUseCase>()();
+              if (!context.mounted) return;
               if (completed) {
                 context.go(AppRouter.kHomeView);
               } else {
@@ -123,7 +139,19 @@ class _AuthSignUpViewState extends State<AuthSignUpView> {
                           : const Text('Create account'),
                     ),
                     TextButton(
-                      onPressed: loading ? null : () => context.push(AppRouter.kAuthSignIn),
+                      onPressed: loading
+                          ? null
+                          : () {
+                              final completeOnboarding =
+                                  AppRouter.parseCompleteOnboarding(
+                                GoRouterState.of(context),
+                              );
+                              context.push(
+                                completeOnboarding
+                                    ? AppRouter.signInToCompleteOnboardingPath()
+                                    : AppRouter.kAuthSignIn,
+                              );
+                            },
                       child: Text(
                         'Already have an account? Sign in',
                         style: TextStyle(color: AppColor.primaryColor),

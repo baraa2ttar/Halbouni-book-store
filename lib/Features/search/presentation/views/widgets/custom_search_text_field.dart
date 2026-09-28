@@ -1,6 +1,4 @@
 
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import '../../../../../core/exports/main_exports.dart';
 
 class CustomSearchTextField extends StatelessWidget {
@@ -22,7 +20,7 @@ class CustomSearchTextField extends StatelessWidget {
           onPressed: () {},
           icon: Opacity(
               opacity: 0.5,
-              child: Icon(FontAwesomeIcons.magnifyingGlass, size: 20)),
+              child: Icon(Icons.search, size: 20)),
         ),
       ),
     );

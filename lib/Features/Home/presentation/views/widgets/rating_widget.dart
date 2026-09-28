@@ -18,7 +18,7 @@ class RatingWidget extends StatelessWidget {
       mainAxisAlignment: mainAxisAlignment,
       children: [
         Icon(
-          FontAwesomeIcons.solidStar,
+          Icons.star,
           color: const Color(0xffffdd4f),
         ),
         const SizedBox(width: 6.3),

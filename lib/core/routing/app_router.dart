@@ -31,6 +31,24 @@ abstract class AppRouter {
   static const kAuthSignIn = '/auth/sign-in';
   static const kAuthSignUp = '/auth/sign-up';
 
+  /// Query key: `?completeOnboarding=true` tells the sign-in/sign-up screens
+  /// that a full set of onboarding choices is already staged locally and
+  /// should be finalized (synced + marked complete) right after auth
+  /// succeeds, instead of resuming the onboarding page flow.
+  static const String completeOnboardingQuery = 'completeOnboarding';
+
+  static bool parseCompleteOnboarding(GoRouterState state) {
+    return state.uri.queryParameters[completeOnboardingQuery] == 'true';
+  }
+
+  static String signUpToCompleteOnboardingPath() {
+    return '$kAuthSignUp?$completeOnboardingQuery=true';
+  }
+
+  static String signInToCompleteOnboardingPath() {
+    return '$kAuthSignIn?$completeOnboardingQuery=true';
+  }
+
   /// Last index in [OnboardingScreen] `PageView` (interests / profile prep step).
   static const int onboardingLastPageIndex = 3;
 

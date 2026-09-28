@@ -2,6 +2,8 @@ import 'package:adv/Features/auth/presentation/manager/auth_cubit/auth_cubit.dar
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/helpers/validation_service.dart';
 import 'package:adv/core/routing/app_router.dart';
+import 'package:adv/core/services/setup_service_locator.dart';
+import 'package:adv/Features/onboarding/domain/use_cases/complete_onboarding_use_case.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,10 +38,19 @@ class _AuthSignInViewState extends State<AuthSignInView> {
       ),
       body: SafeArea(
         child: BlocConsumer<AuthCubit, AuthState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is AuthAuthenticated && !state.fromSignUp) {
-              final redirect =
-                  GoRouterState.of(context).uri.queryParameters['redirect'];
+              final routerState = GoRouterState.of(context);
+              final completeOnboarding =
+                  AppRouter.parseCompleteOnboarding(routerState);
+              if (completeOnboarding) {
+                // The staged interests were synced to `profiles` by
+                // AuthRepoImpl.signIn()'s automatic syncPendingProfile()
+                // call — just mark onboarding done and continue.
+                await getIt.get<CompleteOnboardingUseCase>()();
+                if (!context.mounted) return;
+              }
+              final redirect = routerState.uri.queryParameters['redirect'];
               context.go(
                 (redirect != null && redirect.isNotEmpty)
                     ? redirect
@@ -102,7 +113,19 @@ class _AuthSignInViewState extends State<AuthSignInView> {
                           : const Text('Sign in'),
                     ),
                     TextButton(
-                      onPressed: loading ? null : () => context.push(AppRouter.kAuthSignUp),
+                      onPressed: loading
+                          ? null
+                          : () {
+                              final completeOnboarding =
+                                  AppRouter.parseCompleteOnboarding(
+                                GoRouterState.of(context),
+                              );
+                              context.push(
+                                completeOnboarding
+                                    ? AppRouter.signUpToCompleteOnboardingPath()
+                                    : AppRouter.kAuthSignUp,
+                              );
+                            },
                       child: Text(
                         'New here? Sign up',
                         style: TextStyle(color: AppColor.primaryColor),

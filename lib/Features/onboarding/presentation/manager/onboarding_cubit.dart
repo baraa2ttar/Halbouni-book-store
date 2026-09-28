@@ -70,6 +70,22 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       );
       return;
     }
+
+    // Interests/gender/age are already persisted locally as a draft via
+    // toggleInterest/setGender/setAgeIndex as the user made each choice.
+    // There's no account yet, so there's nowhere to send them — send the
+    // user to sign up instead of silently "completing" onboarding as a
+    // guest with data that never reaches the backend.
+    if (!_onboardingRepo.isSignedIn) {
+      emit(
+        state.copyWith(
+          submitStatus: OnboardingSubmitStatus.needsAuth,
+          clearSubmitErrorMessage: true,
+        ),
+      );
+      return;
+    }
+
     emit(
       state.copyWith(
         submitStatus: OnboardingSubmitStatus.loading,

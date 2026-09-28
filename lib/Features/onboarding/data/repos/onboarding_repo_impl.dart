@@ -13,7 +13,8 @@ class OnboardingRepoImpl implements OnboardingRepo {
 
   const OnboardingRepoImpl(this._local, this._profileRepo, [this._client]);
 
-  bool get _isSignedIn {
+  @override
+  bool get isSignedIn {
     try {
       return (_client ?? Supabase.instance.client).auth.currentUser != null;
     } catch (_) {
@@ -58,7 +59,7 @@ class OnboardingRepoImpl implements OnboardingRepo {
       ageRange: ageRange,
     );
 
-    if (!_isSignedIn) {
+    if (!isSignedIn) {
       return right(null);
     }
 
@@ -79,7 +80,7 @@ class OnboardingRepoImpl implements OnboardingRepo {
 
   @override
   Future<Either<Failure, void>> syncPendingProfile() async {
-    if (!_isSignedIn) return right(null);
+    if (!isSignedIn) return right(null);
 
     final pending = await _local.loadPendingProfile();
     if (!pending.hasData) return right(null);

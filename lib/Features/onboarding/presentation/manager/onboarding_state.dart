@@ -1,5 +1,14 @@
 enum OnboardingGender { male, female, notSpecified }
-enum OnboardingSubmitStatus { initial, loading, success, failure }
+enum OnboardingSubmitStatus {
+  initial,
+  loading,
+  success,
+  failure,
+
+  /// User picked 4 interests but has no account yet — UI must route to
+  /// sign-up before anything can be persisted to the backend.
+  needsAuth,
+}
 
 class OnboardingState {
   final int pageIndex;

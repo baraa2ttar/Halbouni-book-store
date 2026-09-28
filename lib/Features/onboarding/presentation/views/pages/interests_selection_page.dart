@@ -42,6 +42,9 @@ class InterestsSelectionPage extends StatelessWidget {
         if (state.submitStatus == OnboardingSubmitStatus.success) {
           context.go(AppRouter.kHomeView);
         }
+        if (state.submitStatus == OnboardingSubmitStatus.needsAuth) {
+          context.push(AppRouter.signUpToCompleteOnboardingPath());
+        }
       },
       builder: (context, state) {
         final selectedInterests = state.interests;
