@@ -3,6 +3,7 @@ import 'package:adv/Features/onboarding/presentation/manager/onboarding_state.da
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/routing/app_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'pages/age_selection_page.dart';
 import 'pages/gender_selection_page.dart';
@@ -42,28 +43,118 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _next() {
-    _pageController.nextPage(
+  void _goToPage(int index) {
+    _pageController.animateToPage(
+      index,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
+  void _next() {
+    _goToPage((_pageController.page?.round() ?? widget.initialPageIndex) + 1);
+  }
+
+  void _continueAfterGender(OnboardingState state) {
+    if (state.isRecovery) {
+      if (state.recoveryNeedsAge) {
+        _goToPage(2);
+      } else if (state.recoveryNeedsInterests) {
+        _goToPage(3);
+      } else {
+        context.read<OnboardingCubit>().submitInterests();
+      }
+      return;
+    }
+    _next();
+  }
+
+  void _continueAfterAge(OnboardingState state) {
+    if (state.isRecovery) {
+      if (state.recoveryNeedsInterests) {
+        _goToPage(3);
+      } else {
+        context.read<OnboardingCubit>().submitInterests();
+      }
+      return;
+    }
+    _next();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OnboardingCubit, OnboardingState>(
+    return BlocConsumer<OnboardingCubit, OnboardingState>(
+      listenWhen: (previous, current) =>
+          previous.submitStatus != current.submitStatus,
+      listener: (context, state) {
+        if (state.submitStatus == OnboardingSubmitStatus.failure &&
+            state.submitErrorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.submitErrorMessage!)),
+          );
+        }
+        if (state.submitStatus == OnboardingSubmitStatus.success) {
+          context.go(
+            state.isRecovery ? AppRouter.kProfileView : AppRouter.kHomeView,
+          );
+        }
+        if (state.submitStatus == OnboardingSubmitStatus.needsAuth) {
+          context.push(AppRouter.signUpToCompleteOnboardingPath());
+        }
+      },
       builder: (context, state) {
+        if (state.isRecovery && state.isHydrating) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state.isRecovery &&
+            !state.profileHydrated &&
+            state.hydrateErrorMessage != null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Complete profile'),
+              backgroundColor: Colors.white,
+              foregroundColor: AppColor.titleColor,
+              elevation: 0,
+            ),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      state.hydrateErrorMessage!,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () =>
+                          context.read<OnboardingCubit>().hydrateFromProfile(),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColor.primaryColor,
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
         final pages = [
           WelcomePage(onGetStarted: _next),
           GenderSelectionPage(
             selectedGender: state.gender,
             onSelect: context.read<OnboardingCubit>().setGender,
-            onContinue: _next,
+            onContinue: () => _continueAfterGender(state),
           ),
           AgeSelectionPage(
             selectedIndex: state.ageIndex,
             onSelect: context.read<OnboardingCubit>().setAgeIndex,
-            onContinue: _next,
+            onContinue: () => _continueAfterAge(state),
           ),
           const InterestsSelectionPage(),
         ];

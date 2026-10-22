@@ -71,6 +71,27 @@ class _AuthSignUpViewState extends State<AuthSignUpView> {
               } else {
                 context.go(AppRouter.onboardingPath(startPage: 1));
               }
+            } else if (state is AuthEmailConfirmationRequired) {
+              if (!context.mounted) return;
+              // The account exists but there's no session yet — nothing was
+              // synced. Say so plainly instead of pretending sign-up
+              // finished, and send them to sign in once they've confirmed.
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 6),
+                  content: Text(
+                    'Check ${state.email} for a confirmation link, then sign '
+                    'in to finish setting up your account.',
+                  ),
+                ),
+              );
+              final completeOnboarding =
+                  AppRouter.parseCompleteOnboarding(GoRouterState.of(context));
+              context.go(
+                completeOnboarding
+                    ? AppRouter.signInToCompleteOnboardingPath()
+                    : AppRouter.kAuthSignIn,
+              );
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(state.message)),

@@ -19,6 +19,7 @@ class CheckoutView extends StatefulWidget {
 
 class _CheckoutViewState extends State<CheckoutView> {
   final _notesController = TextEditingController();
+  final _notesFocusNode = FocusNode();
   StreamSubscription<AuthState>? _authSubscription;
 
   @override
@@ -35,6 +36,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   @override
   void dispose() {
     _authSubscription?.cancel();
+    _notesFocusNode.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -44,8 +46,10 @@ class _CheckoutViewState extends State<CheckoutView> {
     final session = Supabase.instance.client.auth.currentSession;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
         title: const Text('Checkout'),
+        centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: AppColor.titleColor,
         elevation: 0,
@@ -74,7 +78,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 }
 
                 final items = cartState.items;
-                final total = items.fold<double>(
+                final subtotal = items.fold<double>(
                   0,
                   (sum, item) => sum + item.price * item.quantity,
                 );
@@ -102,44 +106,117 @@ class _CheckoutViewState extends State<CheckoutView> {
                       children: [
                         Expanded(
                           child: SingleChildScrollView(
-                            padding: EdgeInsets.all(context.horizontalPadding),
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Order summary',
-                                  style: AppTextStyles.titleText(context),
-                                ),
-                                const SizedBox(height: 16),
-                                ...items.map((item) => _OrderLineItem(item: item)),
-                                const Divider(height: 32),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Total',
-                                      style: AppTextStyles.textStyle20.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                _SectionCard(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.notes_outlined,
+                                            color: AppColor.primaryColor,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Delivery Notes',
+                                              style: AppTextStyles.textStyle16
+                                                  .copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Edit notes',
+                                            onPressed: isLoading
+                                                ? null
+                                                : () => _notesFocusNode
+                                                    .requestFocus(),
+                                            icon: Icon(
+                                              Icons.edit_outlined,
+                                              color: AppColor.darkGreyColor,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                      '\$${total.toStringAsFixed(2)}',
-                                      style: AppTextStyles.textStyle20.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                      TextField(
+                                        controller: _notesController,
+                                        focusNode: _notesFocusNode,
+                                        enabled: !isLoading,
+                                        maxLines: 3,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Add delivery notes (optional)',
+                                          filled: true,
+                                          fillColor: const Color(0xFFF7F7F7),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                _SectionCard(
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.payments_outlined,
                                         color: AppColor.primaryColor,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Payment Method: Pay on Delivery',
+                                          style: AppTextStyles.textStyle16
+                                              .copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 24),
-                                TextField(
-                                  controller: _notesController,
-                                  enabled: !isLoading,
-                                  maxLines: 3,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Delivery notes (optional)',
-                                    border: OutlineInputBorder(),
-                                    alignLabelWithHint: true,
+                                const SizedBox(height: 12),
+                                _SectionCard(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Order summary',
+                                        style: AppTextStyles.textStyle16
+                                            .copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ...items.map(
+                                        (item) => _OrderLineItem(item: item),
+                                      ),
+                                      const Padding(
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 8),
+                                        child: Divider(height: 1),
+                                      ),
+                                      _AmountRow(
+                                        label: 'Subtotal',
+                                        value: subtotal,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _AmountRow(
+                                        label: 'TOTAL PAYMENT',
+                                        value: subtotal,
+                                        emphasize: true,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -147,7 +224,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(16),
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             boxShadow: [
@@ -163,13 +240,18 @@ class _CheckoutViewState extends State<CheckoutView> {
                             child: SizedBox(
                               width: double.infinity,
                               child: CustomButton(
-                                text: isLoading ? 'Placing order...' : 'Place order',
+                                text: isLoading
+                                    ? 'Placing order...'
+                                    : 'Place Order',
                                 backgroundColor: AppColor.primaryColor,
                                 textColor: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
                                 onPressed: isLoading
                                     ? null
                                     : () {
-                                        context.read<CheckoutCubit>().placeOrder(
+                                        context
+                                            .read<CheckoutCubit>()
+                                            .placeOrder(
                                               items: items,
                                               notes: _notesController.text,
                                             );
@@ -188,8 +270,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget _buildSignInRequired(BuildContext context) {
-    final redirect =
-        Uri.encodeComponent(AppRouter.kCheckoutView);
+    final redirect = Uri.encodeComponent(AppRouter.kCheckoutView);
     return Center(
       child: Padding(
         padding: EdgeInsets.all(context.horizontalPadding),
@@ -204,7 +285,8 @@ class _CheckoutViewState extends State<CheckoutView> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: () => context.push('${AppRouter.kAuthSignIn}?redirect=$redirect'),
+              onPressed: () =>
+                  context.push('${AppRouter.kAuthSignIn}?redirect=$redirect'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColor.primaryColor,
                 foregroundColor: Colors.white,
@@ -246,6 +328,68 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 }
 
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _AmountRow extends StatelessWidget {
+  const _AmountRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final double value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: emphasize
+              ? AppTextStyles.textStyle16.copyWith(fontWeight: FontWeight.w800)
+              : AppTextStyles.textStyle14.copyWith(color: AppColor.darkGreyColor),
+        ),
+        Text(
+          '\$${value.toStringAsFixed(2)}',
+          style: emphasize
+              ? AppTextStyles.textStyle16.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.primaryColor,
+                )
+              : AppTextStyles.textStyle14.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+}
+
 class _OrderLineItem extends StatelessWidget {
   const _OrderLineItem({required this.item});
 
@@ -270,7 +414,10 @@ class _OrderLineItem extends StatelessWidget {
                 ),
                 Text(
                   'Qty: ${item.quantity} × \$${item.price.toStringAsFixed(2)}',
-                  style: TextStyle(color: AppColor.darkGreyColor, fontSize: context.fs(13)),
+                  style: TextStyle(
+                    color: AppColor.darkGreyColor,
+                    fontSize: context.fs(13),
+                  ),
                 ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:adv/Features/profile/domain/repos/profile_repo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repos/onboarding_repo.dart';
@@ -8,8 +9,31 @@ import 'onboarding_state.dart';
 class OnboardingCubit extends Cubit<OnboardingState> {
   final CompleteOnboardingUseCase _completeOnboarding;
   final OnboardingRepo _onboardingRepo;
-  OnboardingCubit(this._completeOnboarding, this._onboardingRepo)
-      : super(const OnboardingState());
+  final ProfileRepo? _profileRepo;
+
+  OnboardingCubit(
+    this._completeOnboarding,
+    this._onboardingRepo, {
+    ProfileRepo? profileRepo,
+    bool isRecovery = false,
+    bool recoveryNeedsAge = false,
+    bool recoveryNeedsInterests = false,
+  })  : _profileRepo = profileRepo,
+        super(
+          OnboardingState(
+            isRecovery: isRecovery,
+            recoveryNeedsAge: recoveryNeedsAge,
+            recoveryNeedsInterests: recoveryNeedsInterests,
+          ),
+        );
+
+  Future<void> initialize() async {
+    if (state.isRecovery) {
+      await hydrateFromProfile();
+    } else {
+      await restoreDraft();
+    }
+  }
 
   Future<void> restoreDraft() async {
     final pending = await _onboardingRepo.loadPendingProfile();
@@ -20,6 +44,58 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         gender: _genderFromString(pending.gender),
         ageIndex: pending.ageIndex,
       ),
+    );
+  }
+
+  Future<void> hydrateFromProfile() async {
+    final profileRepo = _profileRepo;
+    if (profileRepo == null) {
+      emit(
+        state.copyWith(
+          isHydrating: false,
+          profileHydrated: false,
+          hydrateErrorMessage: 'Profile is not available.',
+        ),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        isHydrating: true,
+        clearHydrateErrorMessage: true,
+      ),
+    );
+    final result = await profileRepo.fetchProfile();
+    if (isClosed) return;
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          isHydrating: false,
+          profileHydrated: false,
+          hydrateErrorMessage: failure.message,
+        ),
+      ),
+      (profile) {
+        final ageIndex = profile.ageRange == null
+            ? null
+            : AgeSelectionPage.ageRanges.indexOf(profile.ageRange!);
+        final parsedAgeIndex =
+            (ageIndex != null && ageIndex >= 0) ? ageIndex : null;
+        final parsedGender = _genderFromString(profile.gender);
+        emit(
+          state.copyWith(
+            isHydrating: false,
+            profileHydrated: true,
+            clearHydrateErrorMessage: true,
+            interests: profile.interests,
+            gender: parsedGender,
+            clearGender: parsedGender == null,
+            ageIndex: parsedAgeIndex,
+            clearAgeIndex: parsedAgeIndex == null,
+          ),
+        );
+      },
     );
   }
 
@@ -61,6 +137,17 @@ class OnboardingCubit extends Cubit<OnboardingState> {
 
   Future<void> submitInterests() async {
     if (state.submitStatus == OnboardingSubmitStatus.loading) return;
+    if (state.isRecovery && !state.profileHydrated) {
+      emit(
+        state.copyWith(
+          submitStatus: OnboardingSubmitStatus.failure,
+          submitErrorMessage:
+              'Could not load your profile. Go back and try again.',
+        ),
+      );
+      return;
+    }
+
     if (state.interests.length != 4) {
       emit(
         state.copyWith(

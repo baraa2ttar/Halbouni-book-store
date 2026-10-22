@@ -33,6 +33,9 @@ class OnboardingRepoImpl implements OnboardingRepo {
       _local.loadPendingProfile();
 
   @override
+  Future<void> clearPendingDraft() => _local.clearPendingProfile();
+
+  @override
   Future<void> savePendingDraft({
     List<String>? interests,
     String? gender,

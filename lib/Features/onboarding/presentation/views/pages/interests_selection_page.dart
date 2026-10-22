@@ -2,9 +2,7 @@ import 'package:adv/Features/onboarding/presentation/models/genre.dart';
 import 'package:adv/Features/onboarding/presentation/manager/onboarding_cubit.dart';
 import 'package:adv/Features/onboarding/presentation/manager/onboarding_state.dart';
 import 'package:adv/core/exports/ui_exports.dart';
-import 'package:adv/core/routing/app_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../widgets/card_googl.dart';
 
@@ -29,23 +27,7 @@ class InterestsSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<OnboardingCubit, OnboardingState>(
-      listenWhen: (previous, current) =>
-          previous.submitStatus != current.submitStatus,
-      listener: (context, state) {
-        if (state.submitStatus == OnboardingSubmitStatus.failure &&
-            state.submitErrorMessage != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.submitErrorMessage!)));
-        }
-        if (state.submitStatus == OnboardingSubmitStatus.success) {
-          context.go(AppRouter.kHomeView);
-        }
-        if (state.submitStatus == OnboardingSubmitStatus.needsAuth) {
-          context.push(AppRouter.signUpToCompleteOnboardingPath());
-        }
-      },
+    return BlocBuilder<OnboardingCubit, OnboardingState>(
       builder: (context, state) {
         final selectedInterests = state.interests;
         final isLoading = state.submitStatus == OnboardingSubmitStatus.loading;

@@ -18,6 +18,12 @@ class OnboardingState {
   final bool isCompleting;
   final OnboardingSubmitStatus submitStatus;
   final String? submitErrorMessage;
+  final bool isRecovery;
+  final bool recoveryNeedsAge;
+  final bool recoveryNeedsInterests;
+  final bool isHydrating;
+  final bool profileHydrated;
+  final String? hydrateErrorMessage;
 
   const OnboardingState({
     this.pageIndex = 0,
@@ -27,6 +33,12 @@ class OnboardingState {
     this.isCompleting = false,
     this.submitStatus = OnboardingSubmitStatus.initial,
     this.submitErrorMessage,
+    this.isRecovery = false,
+    this.recoveryNeedsAge = false,
+    this.recoveryNeedsInterests = false,
+    this.isHydrating = false,
+    this.profileHydrated = false,
+    this.hydrateErrorMessage,
   });
 
   OnboardingState copyWith({
@@ -40,6 +52,13 @@ class OnboardingState {
     OnboardingSubmitStatus? submitStatus,
     String? submitErrorMessage,
     bool clearSubmitErrorMessage = false,
+    bool? isRecovery,
+    bool? recoveryNeedsAge,
+    bool? recoveryNeedsInterests,
+    bool? isHydrating,
+    bool? profileHydrated,
+    String? hydrateErrorMessage,
+    bool clearHydrateErrorMessage = false,
   }) {
     return OnboardingState(
       pageIndex: pageIndex ?? this.pageIndex,
@@ -51,6 +70,15 @@ class OnboardingState {
       submitErrorMessage: clearSubmitErrorMessage
           ? null
           : (submitErrorMessage ?? this.submitErrorMessage),
+      isRecovery: isRecovery ?? this.isRecovery,
+      recoveryNeedsAge: recoveryNeedsAge ?? this.recoveryNeedsAge,
+      recoveryNeedsInterests:
+          recoveryNeedsInterests ?? this.recoveryNeedsInterests,
+      isHydrating: isHydrating ?? this.isHydrating,
+      profileHydrated: profileHydrated ?? this.profileHydrated,
+      hydrateErrorMessage: clearHydrateErrorMessage
+          ? null
+          : (hydrateErrorMessage ?? this.hydrateErrorMessage),
     );
   }
 }

@@ -17,7 +17,17 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _authRepo.signUp(email: email, password: password);
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user, fromSignUp: true)),
+      (user) {
+        // No accessToken means Supabase created the account but returned no
+        // session — email confirmation is pending. The user is NOT actually
+        // signed in yet, so nothing was synced to `profiles`. Don't claim
+        // success here; that false-positive is what broke onboarding sync.
+        if (user.accessToken == null) {
+          emit(AuthEmailConfirmationRequired(user.email));
+        } else {
+          emit(AuthAuthenticated(user, fromSignUp: true));
+        }
+      },
     );
   }
 

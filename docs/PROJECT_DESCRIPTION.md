@@ -72,6 +72,27 @@ await supabase.rpc('place_order', params: {
 - Splash screen checks `Supabase.instance.client.auth.currentSession` to route to Home or Onboarding.
 - Checkout listens to `onAuthStateChange` so a sign-in started with `?redirect=/checkout` lands back on checkout with a live session.
 
+### Checkout — what it actually does today
+
+There is **no payment gateway**, **no address book**, **no shipping options**, and **no vouchers**. Checkout is a confirmation screen that:
+
+1. Requires a signed-in session.
+2. Lets the user type optional **delivery notes** into `orders.notes` (free-form text; the only delivery field).
+3. Shows a non-interactive **Pay on Delivery** line (wording only — `place_order` does not charge anyone).
+4. Submits `{product_id, quantity}` plus notes through the `place_order` RPC.
+5. Creates the order as **`pending`**; an admin updates status later.
+
+Cart and checkout totals are the cart line sum. Subtotal and TOTAL are the same number because there are no fees, shipping rows, or discounts in the schema (`products.price` only — no original/compare-at price).
+
+### Profile recovery
+
+A signed-in user whose `profiles` row is missing interests (not exactly 4), gender, or `age_range` can complete those fields from Profile via the existing onboarding gender / age / interests pages (`?recovery=true`). This is not a separate editor. Gender/age skipped during first onboarding can be set later this way.
+
+### Known placeholders (not bugs)
+
+- **Book ratings:** display-only (including `0`); there is no in-app rating write this round.
+- **Avatar:** Profile shows a generic person icon. There is no avatar upload/editing.
+
 ---
 
 ## Routing — GoRouter
@@ -79,13 +100,13 @@ await supabase.rpc('place_order', params: {
 | Route | Constant | Widget | Notes |
 |-------|----------|--------|-------|
 | `/` | — | `SplashView` | Animated logo → checks session → routes to Home or Onboarding |
-| `/onboarding` | `kOnboardingView` | `OnboardingScreen` | PageView: Welcome, Gender, Age, Interests. `?startPage=N` query param |
+| `/onboarding` | `kOnboardingView` | `OnboardingScreen` | PageView: Welcome, Gender, Age, Interests. `?startPage=N`. Profile recovery: `?recovery=true&needsAge=&needsInterests=` |
 | `/homeView` | `kHomeView` | `HomeView` | Featured carousel, category chips (from DB), best seller list |
 | `/bookDetailsView/:id` | `kBookDetailsView` | `BookDetailsView` | Dynamic route. `ProductEntity` passed via `extra` |
 | `/searchView` | `kSearchView` | `SearchView` | Live debounced search |
-| `/cartView` | `kCartView` | `CartView` | Cart items, quantity controls, total bar |
-| `/checkout` | `kCheckoutView` | `CheckoutView` | Order summary + notes → `place_order` RPC |
-| `/profile` | `kProfileView` | `ProfileView` | User info, interest-based recommendations, sign-out |
+| `/cartView` | `kCartView` | `CartView` | Card layout: cover, title, author, price, stepper, remove; summary + Checkout |
+| `/checkout` | `kCheckoutView` | `CheckoutView` | Delivery notes + Pay on Delivery line + summary → `place_order` RPC |
+| `/profile` | `kProfileView` | `ProfileView` | User info, incomplete-profile recovery, interest-based recommendations, sign-out |
 | `/auth/sign-in` | `kAuthSignIn` | `AuthSignInView` | Supabase email sign-in. `?redirect=<path>` returns there after login |
 | `/auth/sign-up` | `kAuthSignUp` | `AuthSignUpView` | Supabase email sign-up |
 
@@ -101,8 +122,8 @@ await supabase.rpc('place_order', params: {
 | `ProductDetailsCubit` | Scoped to BookDetailsView | Initial / Loading / Success / Failure | Fetches single product by ID |
 | `CartCubit` | Global | Initial / Loading / Loaded / Failure | Hive cart CRUD; recovers from non-loaded state in add/change |
 | `CheckoutCubit` | Scoped to CheckoutView (factory) | Initial / Loading / Success (+optional warning) / Failure | Places order via RPC; double-submit guard; emits Success even if local cart clear fails |
-| `OnboardingCubit` | Scoped to OnboardingScreen | Page index, gender, age, interests, completing | Multi-step onboarding flow |
-| `AuthCubit` | Scoped to Auth views | Initial / Loading / Authenticated / Error | Supabase sign-in / sign-up |
+| `OnboardingCubit` | Scoped to OnboardingScreen | Page index, gender, age, interests, completing, recovery/hydrate flags | First-run onboarding and signed-in profile recovery |
+| `AuthCubit` | Scoped to Auth views | Initial / Loading / Authenticated / EmailConfirmationRequired / Error | Supabase sign-in / sign-up; no session after sign-up is treated as confirm-email, not logged-in |
 | `ProfileCubit` | Scoped to ProfileView | Initial / Loading / Loaded / SigningOut / SignedOut / Failure | Profile + maps interest **names → category ids** for recommendations |
 
 ---
@@ -113,7 +134,7 @@ await supabase.rpc('place_order', params: {
 |----------|------|---------|
 | `cart_box` | `Box<CartItemModel>` | Offline cart persistence |
 
-**Hive Adapter:** `CartItemModelAdapter` (typeId: 1).
+**Hive Adapter:** `CartItemModelAdapter` (typeId: 1) — fields: id, name, price, imageUrl, quantity, author. Older cart rows without `author` read as `''`.
 
 **SharedPreferences:** Onboarding completion flag.
 

@@ -4,6 +4,7 @@ import 'package:adv/Features/onboarding/domain/repos/onboarding_repo.dart';
 import 'package:adv/Features/profile/domain/repos/profile_repo.dart';
 import 'package:adv/core/errors/failure.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthRepoImpl implements AuthRepo {
@@ -71,6 +72,9 @@ class AuthRepoImpl implements AuthRepo {
   Future<Either<Failure, void>> signOut() async {
     try {
       await _client.auth.signOut();
+      // Prevent a leftover, never-synced draft from one account being
+      // replayed onto whichever account signs in next on this device.
+      await _onboardingRepo?.clearPendingDraft();
       return right(null);
     } on AuthException catch (e) {
       return left(ServerFailure(e.message));
@@ -89,7 +93,19 @@ class AuthRepoImpl implements AuthRepo {
   }
 
   Future<void> _syncOnboardingProfile() async {
-    await _onboardingRepo?.syncPendingProfile();
+    final result = await _onboardingRepo?.syncPendingProfile();
+    // The Either was previously discarded here, so a failed sync (RLS
+    // rejection, dropped connection, a token not yet attached right after
+    // signUp/signIn returns) was invisible: no log, no user-facing warning,
+    // and the pending draft — while correctly left intact on failure — was
+    // never retried unless the user happened to sign in again naturally
+    // with the same local app data still present.
+    result?.fold(
+      (failure) => debugPrint(
+        'Onboarding profile sync failed: ${failure.message}',
+      ),
+      (_) {},
+    );
   }
 
   AuthEntity _mapSessionUser(User user, Session? session) {

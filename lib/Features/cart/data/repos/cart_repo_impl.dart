@@ -50,13 +50,7 @@ class CartRepoImpl implements CartRepo {
       if (existing == null) {
         return left(ServerFailure('Item not found in cart'));
       }
-      final updated = CartItemModel(
-        id: existing.id,
-        name: existing.name,
-        price: existing.price,
-        imageUrl: existing.imageUrl,
-        quantity: quantity,
-      );
+      final updated = existing.copyWith(quantity: quantity);
       await _box.put(productId, updated);
       return right(null);
     } catch (e) {

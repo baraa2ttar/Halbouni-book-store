@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:adv/Features/Home/presentation/views/widgets/custom_detailed_book_item.dart';
+import 'package:adv/Features/profile/domain/entities/profile_entity.dart';
 import 'package:adv/Features/profile/presentation/manager/profile_cubit/profile_cubit.dart';
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:adv/core/routing/app_router.dart';
@@ -14,9 +17,34 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  StreamSubscription<AuthState>? _authSub;
+
   @override
   void initState() {
     super.initState();
+    // Rebuild (and reload the profile) whenever the session actually
+    // changes, instead of trusting a one-time read of currentSession — that
+    // stale read is what made this page contradict the sign-up flow.
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (!mounted) return;
+      if (data.event == AuthChangeEvent.signedIn) {
+        // Signing in from the guest screen here often navigates away in the
+        // same frame (e.g. straight to Home), which closes this route's
+        // ProfileCubit. `mounted` alone doesn't catch that race — check the
+        // cubit itself before touching it.
+        final cubit = context.read<ProfileCubit>();
+        if (!cubit.isClosed) {
+          cubit.loadProfile();
+        }
+      }
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -125,6 +153,35 @@ class _ProfileContent extends StatelessWidget {
               ageRange: profile.ageRange,
             ),
           SizedBox(height: context.ph(24)),
+          if (profile.isIncomplete) ...[
+            Text(
+              _incompleteProfileMessage(profile),
+              style: TextStyle(
+                color: AppColor.darkGreyColor,
+                fontSize: context.fs(14),
+              ),
+            ),
+            SizedBox(height: context.ph(12)),
+            FilledButton(
+              onPressed: () => context.push(
+                AppRouter.profileRecoveryPath(
+                  missingGender: !profile.hasGender,
+                  missingAge: !profile.hasAgeRange,
+                  missingInterests: !profile.hasInterests,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColor.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                profile.hasInterests
+                    ? 'Complete your profile'
+                    : 'Choose your interests',
+              ),
+            ),
+            SizedBox(height: context.ph(24)),
+          ],
           Text(
             'Favorite categories',
             style: AppTextStyles.titleText(context),
@@ -132,7 +189,7 @@ class _ProfileContent extends StatelessWidget {
           SizedBox(height: context.ph(12)),
           if (profile.interests.isEmpty)
             Text(
-              'No categories saved yet. Complete onboarding to pick your interests.',
+              'No categories saved yet.',
               style: TextStyle(color: AppColor.darkGreyColor, fontSize: context.fs(14)),
             )
           else
@@ -191,6 +248,19 @@ class _ProfileContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _incompleteProfileMessage(ProfileEntity profile) {
+    final missing = <String>[];
+    if (!profile.hasInterests) missing.add('interests');
+    if (!profile.hasGender) missing.add('gender');
+    if (!profile.hasAgeRange) missing.add('age');
+    if (missing.isEmpty) return '';
+    if (missing.length == 1) {
+      return 'You still need to set your ${missing.first}.';
+    }
+    final last = missing.removeLast();
+    return 'You still need to set ${missing.join(', ')} and $last.';
   }
 }
 

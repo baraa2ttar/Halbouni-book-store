@@ -145,11 +145,13 @@ Extensions: `.h` (height), `.w` (width), `.sp` (font) from `flutter_screenutil`.
 | Screen | Route | Main Widget | Key Components |
 |--------|-------|-------------|----------------|
 | **Splash** | `/` | `SplashView` | Animated logo, sliding text, 2s delay |
-| **Onboarding** | `/onboarding` | `OnboardingScreen` | 4-step PageView: Welcome, Gender, Age, Interests |
+| **Onboarding** | `/onboarding` | `OnboardingScreen` | 4-step PageView: Welcome, Gender, Age, Interests. Signed-in profile recovery reuses Gender/Age/Interests via `?recovery=true` (no separate editor). |
 | **Home** | `/homeView` | `HomeView` → `HomeViewBody` | CustomAppBar (logo + search + cart), FeaturedBooksListViewBlocBuilder (horizontal carousel), CategoryChips (8 categories), CustomDetailedBookBuilder (vertical list) |
-| **Book Details** | `/bookDetailsView/:id` | `BookDetailsView` → `BookDetailsViewBody` | CustomBookDetailesAppBar (close + cart), book cover, name, author, RatingWidget, BooksActionButton (price + Add to Cart), SimilarBooksListView (horizontal, by category) |
+| **Book Details** | `/bookDetailsView/:id` | `BookDetailsView` → `BookDetailsViewBody` | CustomBookDetailesAppBar (close + cart), book cover, name, author, RatingWidget (display-only), BooksActionButton (price + Add to Cart), SimilarBooksListView (horizontal, by category) |
 | **Search** | `/searchView` | `SearchView` → `SearchViewBody` | CustomSearchTextField, debounced BlocBuilder results |
-| **Cart** | `/cartView` | `CartView` → `CartViewBody` | BlocBuilder (loading/empty/loaded), _CartItemTile (image + title + price + quantity +/-), _BottomTotalBar (total + checkout button) |
+| **Cart** | `/cartView` | `CartView` → `CartViewBody` | Card list: cover + title + author + single price + quantity stepper + remove; order summary (product count, subtotal = TOTAL); full-width Checkout CTA. No vouchers, fees, or strikethrough prices (schema has `products.price` only). |
+| **Checkout** | `/checkout` | `CheckoutView` | Delivery Notes card (`orders.notes` text field), non-interactive "Payment Method: Pay on Delivery", order summary (subtotal = TOTAL PAYMENT), Place Order → `place_order` RPC. No address book, shipping options, payment picker, or vouchers. |
+| **Profile** | `/profile` | `ProfileView` | Email + generic person icon (no avatar upload), gender/age, incomplete-profile recovery button, favorite categories. |
 | **Auth Sign-In** | `/auth/sign-in` | `AuthSignInView` | Email/password fields, Supabase sign-in |
 | **Auth Sign-Up** | `/auth/sign-up` | `AuthSignUpView` | Email/password fields, Supabase sign-up |
 
@@ -161,7 +163,7 @@ Extensions: `.h` (height), `.w` (width), `.sp` (font) from `flutter_screenutil`.
 |--------|------|---------|
 | `CustomAppBar` | `custom_app_bar.dart` | Home top bar: logo, title, search icon, cart icon |
 | `CustomBookDetailesAppBar` | `custom_book_detailes_app_bar.dart` | Details top bar: close (pop), cart icon |
-| `RatingWidget` | `rating_widget.dart` | Star icon + dynamic rating value + optional review count |
+| `RatingWidget` | `rating_widget.dart` | Star icon + dynamic rating value + optional review count (display-only; no in-app rating write) |
 | `BooksActionButton` | `booksActionButton.dart` | Price button (black) + "Add to Cart" button (orange) with SnackBar |
 | `CustomButton` | `custom_button.dart` | Reusable button with optional `onPressed` callback |
 | `CustomListViewItem` | `custom_list_view_item.dart` | Book cover image (CachedNetworkImage with fallback) |

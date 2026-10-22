@@ -19,6 +19,11 @@ abstract class OnboardingRepo {
 
   Future<PendingOnboardingProfile> loadPendingProfile();
 
+  /// Discards any locally staged (unsynced) onboarding draft. Call this on
+  /// sign-out so a leftover draft from one account can never be replayed
+  /// onto whichever account signs in next on this device.
+  Future<void> clearPendingDraft();
+
   Future<void> savePendingDraft({
     List<String>? interests,
     String? gender,

@@ -21,12 +21,16 @@ class CartItemModel {
   @HiveField(4)
   final int quantity;
 
+  @HiveField(5)
+  final String author;
+
   const CartItemModel({
     required this.id,
     required this.name,
     required this.price,
     required this.imageUrl,
     required this.quantity,
+    this.author = '',
   });
 
   factory CartItemModel.fromProductEntity(ProductEntity p, {int qty = 1}) {
@@ -36,6 +40,25 @@ class CartItemModel {
       price: p.price,
       imageUrl: p.imageUrl,
       quantity: qty,
+      author: p.bookDetails?.author ?? '',
+    );
+  }
+
+  CartItemModel copyWith({
+    String? id,
+    String? name,
+    double? price,
+    String? imageUrl,
+    int? quantity,
+    String? author,
+  }) {
+    return CartItemModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      quantity: quantity ?? this.quantity,
+      author: author ?? this.author,
     );
   }
 }

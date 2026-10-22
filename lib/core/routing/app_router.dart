@@ -17,6 +17,7 @@ import '../../Features/Home/presentation/views/book_details_view.dart';
 import '../../Features/search/presentation/views/search_view.dart';
 import '../../Features/splash/presentation/views/splash_view.dart';
 import '../../Features/onboarding/domain/repos/onboarding_repo.dart';
+import '../../Features/profile/domain/repos/profile_repo.dart';
 import '../services/setup_service_locator.dart';
 import '../../Features/onboarding/domain/use_cases/complete_onboarding_use_case.dart';
 
@@ -55,9 +56,33 @@ abstract class AppRouter {
   /// Query key: `?startPage=0` … `onboardingLastPageIndex` opens that onboarding step first.
   static const String onboardingStartPageQuery = 'startPage';
 
+  /// Query key: `?recovery=true` opens onboarding as signed-in profile repair
+  /// (skip welcome; only visit fields that are still missing).
+  static const String onboardingRecoveryQuery = 'recovery';
+  static const String onboardingNeedsAgeQuery = 'needsAge';
+  static const String onboardingNeedsInterestsQuery = 'needsInterests';
+
   static String onboardingPath({int startPage = 0}) {
     final clamped = startPage.clamp(0, onboardingLastPageIndex);
     return '$kOnboardingView?$onboardingStartPageQuery=$clamped';
+  }
+
+  /// Signed-in users with an incomplete profile reuse the existing gender /
+  /// age / interests pages instead of a separate editor.
+  static String profileRecoveryPath({
+    required bool missingGender,
+    required bool missingAge,
+    required bool missingInterests,
+  }) {
+    final startPage = missingGender
+        ? 1
+        : missingAge
+            ? 2
+            : onboardingLastPageIndex;
+    return '$kOnboardingView?$onboardingStartPageQuery=$startPage'
+        '&$onboardingRecoveryQuery=true'
+        '&$onboardingNeedsAgeQuery=$missingAge'
+        '&$onboardingNeedsInterestsQuery=$missingInterests';
   }
 
   static int parseOnboardingStartPage(GoRouterState state) {
@@ -67,6 +92,14 @@ abstract class AppRouter {
     return parsed.clamp(0, onboardingLastPageIndex);
   }
 
+  static bool parseOnboardingRecovery(GoRouterState state) {
+    return state.uri.queryParameters[onboardingRecoveryQuery] == 'true';
+  }
+
+  static bool _parseBoolQuery(GoRouterState state, String key) {
+    return state.uri.queryParameters[key] == 'true';
+  }
+
   static final GoRouter router = GoRouter(
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashView()),
@@ -74,12 +107,17 @@ abstract class AppRouter {
         path: kOnboardingView,
         builder: (context, state) {
           final startPage = parseOnboardingStartPage(state);
+          final isRecovery = parseOnboardingRecovery(state);
           return BlocProvider(
-            create:
-                (_) => OnboardingCubit(
-                  getIt.get<CompleteOnboardingUseCase>(),
-                  getIt.get<OnboardingRepo>(),
-                )..restoreDraft(),
+            create: (_) => OnboardingCubit(
+              getIt.get<CompleteOnboardingUseCase>(),
+              getIt.get<OnboardingRepo>(),
+              profileRepo: getIt.get<ProfileRepo>(),
+              isRecovery: isRecovery,
+              recoveryNeedsAge: _parseBoolQuery(state, onboardingNeedsAgeQuery),
+              recoveryNeedsInterests:
+                  _parseBoolQuery(state, onboardingNeedsInterestsQuery),
+            )..initialize(),
             child: OnboardingScreen(initialPageIndex: startPage),
           );
         },
