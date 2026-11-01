@@ -5,6 +5,7 @@ import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/repos/home_repo.dart';
 import '../../../../core/errors/failure.dart';
+import '../../../../core/helpers/ilike_escape.dart';
 import '../models/category_model.dart';
 import '../models/product_model.dart';
 
@@ -25,6 +26,7 @@ class HomeRepoImpl extends HomeRepo {
           .eq('is_active', true)
           // Deterministic order so pagination doesn't shuffle between pages.
           .order('created_at', ascending: false)
+          .order('id', ascending: false)
           .range(pageNumber * 10, pageNumber * 10 + 9);
 
       final products = (data as List)
@@ -46,6 +48,7 @@ class HomeRepoImpl extends HomeRepo {
           .select('*, categories(name), book_details(*)')
           .eq('is_active', true)
           .order('created_at', ascending: false)
+          .order('id', ascending: false)
           .limit(20);
 
       final products = (data as List)
@@ -68,7 +71,9 @@ class HomeRepoImpl extends HomeRepo {
           .from('products')
           .select('*, categories(name), book_details(*)')
           .eq('category_id', categoryId)
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .order('created_at', ascending: false)
+          .order('id', ascending: false);
 
       final products = (data as List)
           .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
@@ -105,11 +110,13 @@ class HomeRepoImpl extends HomeRepo {
     required String query,
   }) async {
     try {
+      final pattern = '%${escapeIlikePattern(query)}%';
       final data = await _supabase
           .from('products')
           .select('*, categories(name), book_details(*)')
           .eq('is_active', true)
-          .ilike('name', '%$query%');
+          .ilike('name', pattern)
+          .limit(50);
 
       final products = (data as List)
           .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
