@@ -1,3 +1,5 @@
+HISTORICAL, not a source of truth. See PROJECT_CONTEXT.md
+
 # Halbouni Book Store — Project Description
 
 **Package name:** `adv` (`pubspec.yaml`)  

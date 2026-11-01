@@ -1,3 +1,5 @@
+HISTORICAL, not a source of truth. See PROJECT_CONTEXT.md
+
 # Halbouni Book Store — Design Guide
 
 Quick reference for colors, typography, assets, screens, and design tokens.

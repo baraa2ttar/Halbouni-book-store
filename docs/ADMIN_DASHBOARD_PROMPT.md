@@ -1,3 +1,5 @@
+HISTORICAL, not a source of truth. See PROJECT_CONTEXT.md
+
 # Admin Dashboard — Build Prompt
 
 Use this prompt to build the **Halbouni Book Store Admin Dashboard** as a **Flutter Web** app.
