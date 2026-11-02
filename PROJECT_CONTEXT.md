@@ -2,7 +2,7 @@
 
 > **Audience:** every AI tool and every human opening this project (Cursor, Claude Code, Claude chats, Copilot, new developers).
 > **Maintained by:** the *orchestrator* chat (user-app chat on claude.ai, project "Halbouni BookStore").
-> **Version:** v3, 2026-10-22. Verified against GitHub `main` @ `1f16c8c` (user app) and the live Supabase project.
+> **Version:** v4, 2026-11-01. User app verified against GitHub `main` @ `d35092e` (Spec 1 merged). Live Supabase project last verified 2026-10-22.
 > **If this file and the code disagree, trust the code and the live database, then tell the orchestrator so this file gets fixed.**
 
 ---
@@ -19,10 +19,10 @@
 8. **Report format after every task:** files changed (one line each), what you verified and how, schema requests, anything that contradicted this file, result of `flutter analyze` and `flutter test`.
 
 ### Stale files in this repo: do NOT treat as truth
-- `docs/BACKEND_SETUP.sql`: **outdated and unsafe** (wrong JWT claim `auth.jwt() ->> 'role'`, predates the live schema). Do not run it. To be deleted.
+- `docs/BACKEND_SETUP.sql`: **deleted in Spec 1.** If it ever reappears, do not run it (wrong JWT claim, predates the live schema).
 - `docs/ADMIN_DASHBOARD_PROMPT.md` (972 lines): historical, not re-verified. Section 9 and `ADMIN_CHAT_PROMPT.md` win.
 - `docs/PROJECT_DESCRIPTION.md`, `docs/DESIGN_GUIDE.md`: partly refreshed; this file wins on conflict.
-- `README.md`: still the Flutter default template with a garbled UTF-16 line. Needs a rewrite.
+- `README.md`: rewritten in Spec 1 (UTF-8, run instructions, architecture, link here).
 
 ---
 
@@ -94,7 +94,7 @@ lib/
     onboarding/              interests, gender, age; local draft synced to profile after auth
     profile/                 profile view, recovery flow for incomplete profile
     splash/
-test/                        only widget_test.dart (email-validator tests)
+test/                        widget_test.dart (email validator), ilike_escape_test.dart (search escaping)
 ```
 
 ---
@@ -137,9 +137,9 @@ test/                        only widget_test.dart (email-validator tests)
 
 ---
 
-## 6. User app: current state (verified in code @ `1f16c8c`)
+## 6. User app: current state (verified in code @ `d35092e`)
 
-**Done:** server-side order creation via RPC; `is_active` respected in all product queries; sign-up → profile chain; onboarding draft cleared on sign-out (cross-account leak fixed); profile recovery (interests + gender + age); card-based cart/checkout with delivery-notes field; double-submit guard; search debounce + stale-response guard; Google Books key removed from code; import-casing fixed; unused dependencies removed; Gradle/AGP/Kotlin upgraded.
+**Done:** server-side order creation via RPC; `is_active` respected in all product queries; sign-up → profile chain; onboarding draft cleared on sign-out (cross-account leak fixed); profile recovery (interests + gender + age); card-based cart/checkout with delivery-notes field; double-submit guard; search debounce + stale-response guard; Google Books key removed from code; import-casing fixed; unused dependencies removed; Gradle/AGP/Kotlin upgraded. **Spec 1 (merged 2026-11-01):** portable Gradle config (no machine-specific Java path), README rewrite, stale docs removed or marked historical, deterministic ordering (`created_at desc, id desc`) on featured/newest/by-category, safe search (escapes backslash, `%` and `_`; capped at 50), GitHub Actions CI (pinned Flutter 3.47.3: `pub get`, `analyze`, `test`), `flutter analyze` clean.
 
 **Open (confirmed):**
 - **No "My orders" screen.** Customer can't see status after ordering.
@@ -149,11 +149,10 @@ test/                        only widget_test.dart (email-validator tests)
 - **Book description is loaded by the model but never shown** on the details page.
 - **No pull-to-refresh anywhere** (no `RefreshIndicator`).
 - Prices render with a hardcoded `$`; no RTL/localization (acceptable now, but keep it addable).
-- `fetchProductsByCategory` has no `.order()` (nondeterministic order). List queries over-fetch (`*` + joins); newest capped at 20 with no paging; search matches `name` only and doesn't escape `%`/`_`.
+- List queries over-fetch (`*` + joins); newest capped at 20 with no paging; search matches `name` only and is not yet sorted (added in Spec 2A-1).
 - Rating widget shows a constant 0.0. Decision: hide.
 - No stock awareness in UI (no "Out of stock", no quantity cap).
 - `applicationId`/namespace is `com.example.halbouni_book_store`.
-- `android/gradle.properties` has a machine-specific `org.gradle.java.home=C:/Program Files/...` (breaks CI/other machines) and a stale AGP comment.
 - No password reset, no account deletion (store-required), no crash reporting, no real tests.
 - Google Books key rotation unconfirmed (still in git history if the repo was ever public).
 
@@ -181,7 +180,7 @@ Admin UIs must read allowed transitions from a server function, not hardcode the
 
 ## 8. Roadmap
 
-**Phase 0: Sync & baseline.** Version the live schema as `supabase/migrations/*.sql`; delete `docs/BACKEND_SETUP.sql`; fix `gradle.properties` java.home; rewrite README; `.order()` on category queries; CI (`flutter analyze` + `flutter test`); confirm key rotation; after verification, wipe the test data (orders, test products, test categories) and load the real catalog (see "Catalog onboarding"). *Done when:* clean build and sign-up → order → admin sees it.
+**Phase 0: Sync & baseline. STATUS: mostly done (Spec 1 merged). Still open: version the live schema as migrations, confirm Google key rotation, clean test data.** Version the live schema as `supabase/migrations/*.sql`; delete `docs/BACKEND_SETUP.sql`; fix `gradle.properties` java.home; rewrite README; `.order()` on category queries; CI (`flutter analyze` + `flutter test`); confirm key rotation; after verification, wipe the test data (orders, test products, test categories) and load the real catalog (see "Catalog onboarding"). *Done when:* clean build and sign-up → order → admin sees it.
 
 **Phase 1: Orders that can really be fulfilled (migration C1).**
 - DB: contact snapshot on orders + phone/address on profiles; **delivery fee** (settings + `orders.delivery_fee`, total includes it); COD statuses + allowed-transitions function; `place_order` locks rows, rejects insufficient stock with a clear message, decrements stock; cancel restores stock; `stock_quantity NOT NULL CHECK >= 0`, `price > 0`; `is_active OR is_admin()` read policy; revoke anon EXECUTE; update KPIs.
@@ -237,8 +236,33 @@ Client code may be written against this contract, but must not be merged/release
 
 ---
 
-## 10. Change log
+## 10. Current status and next steps (update this at every milestone)
+
+**Done:** Spec 1 baseline merged to `main` (PR #1, 2026-11-01). Context files (`PROJECT_CONTEXT.md`, `AGENTS.md`, `CLAUDE.md`) and Kiro steering are in the repo.
+
+**In progress / next, in order:**
+1. **Spec 2A-1, customer screens polish** (no backend): SYP prices, book description on details, hide ratings, pull-to-refresh + Retry on Home, search sort. Prompt: `KIRO_PROMPT_2A1.md`. Branch: `customer-screens-polish`.
+2. **Migration C1** (orchestrator writes it, owner reviews, orchestrator applies): contact snapshot, delivery fee, COD statuses, stock enforcement, test-data deletion. See section 9b.
+3. **Spec 2A-2, stock-aware cart** (needs fixes to its design first: Hive `defaultValue: 0` + adapter regeneration + legacy-cart test, fail closed on revalidation error, no property-testing package). Design lives on branch `spec-work` (`.kiro/specs/stock-aware-catalog-ui`, not merged).
+4. **Spec 2B** orders end to end (after C1 is applied).
+5. Admin chat Section A work in parallel (prompt: `ADMIN_CHAT_PROMPT.md`).
+6. Later: category tabs + best sellers (C2), real catalog import (`books_import_template.xlsx`), production readiness, release.
+
+**Open owner items:** rotate the old Google Books key (still in git history, commits `1bb6e09`, `ce77270`) and say whether the repo was ever public; enter the delivery fee amount once C1 exists; confirm category structure (D8).
+
+## 11. Working agreements (branches, chats, handoffs)
+
+**Git:** never work on `main`. One branch per spec or task, created from an up-to-date `main` (`git checkout main`, `git pull`, `git checkout -b <name>`). Merge through a pull request only when `flutter analyze` is clean, `flutter test` passes and CI is green; then `git checkout main`, `git pull`, and start the next branch. Do not reuse a branch for a different spec.
+
+**Kiro:** one spec = one chat (requirements, design, tasks, execution). Start a new chat for every new spec, and also when a chat gets slow, repeats itself or drifts. A new chat re-reads `PROJECT_CONTEXT.md` and the spec folder, so nothing is lost. Run tasks one at a time; commit after each.
+
+**Claude (orchestrator chat):** one chat per workstream (app/orchestration, admin, database). Start a fresh chat after each merged milestone or when the chat becomes long. Handoff: update section 10 of this file, replace the old copy in the Claude project files, then start the new chat with the starter message from the owner's notes (read `PROJECT_CONTEXT.md`, then continue from section 10).
+
+---
+
+## 12. Change log
 - 2026-10-22 v1: file created.
+- 2026-11-01 v4: Spec 1 merged; status and working agreements added (sections 10-11).
 - 2026-10-22 v3.1: added planned contract C1 (section 9b); Kiro prompts added.
 - 2026-10-22 v3: owner confirmed all current data is test data and test orders may be deleted; delivery fee exists, flat fee model decided; Stationery kept as a category; catalog onboarding via spreadsheet template added.
 - 2026-10-22 v2: owner answered D1/D2/D4/D5 (physical only, COD Damascus, English now/Arabic later, SYP, stock-only); added new requirements (tabs, categories, carousel, description, refresh); verified live data (stock mostly 0, duplicate categories, `author` NOT NULL); SYP redenomination noted; roadmap rewritten; production verdict added.
