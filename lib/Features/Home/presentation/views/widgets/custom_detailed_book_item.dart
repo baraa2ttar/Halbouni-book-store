@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../core/exports/main_exports.dart';
 import '../../../../../core/exports/ui_exports.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../domain/entities/product_entity.dart';
-import 'rating_widget.dart';
 
 class CustomDetailedBookItem extends StatelessWidget {
   const CustomDetailedBookItem({super.key, required this.product});
@@ -63,16 +63,11 @@ class CustomDetailedBookItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$${product.price.toStringAsFixed(2)}',
+                        formatSyp(product.price),
                         style: AppTextStyles.textStyle20.copyWith(
                           fontWeight: FontWeight.bold,
                           fontFamily: kGtSectraFine,
                         ),
-                      ),
-                      SizedBox(height: 18,),
-                      RatingWidget(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        rating: product.rating ?? 0,
                       ),
                     ],
                   ),

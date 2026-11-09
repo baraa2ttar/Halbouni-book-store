@@ -1,12 +1,12 @@
 import 'package:adv/Features/Home/domain/entities/product_entity.dart';
 import 'package:adv/Features/Home/presentation/manager/product_details_cubit/product_details_cubit.dart';
-import 'package:adv/Features/Home/presentation/views/widgets/rating_widget.dart';
 import 'package:adv/Features/Home/presentation/views/widgets/similar_books_listview.dart';
 import 'package:adv/core/constant/app_text_styles.dart';
 import 'package:adv/core/exports/main_exports.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'books_action_button.dart';
+import 'collapsible_description.dart';
 import 'custom_book_detailes_app_bar.dart';
 import 'custom_list_view_item.dart';
 
@@ -84,9 +84,10 @@ class _BookDetailsViewBodyState extends State<BookDetailsViewBody> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: 120,
-                        child: RatingWidget(rating: product?.rating ?? 0),
+                      const SizedBox(height: 16),
+                      CollapsibleDescription(
+                        description: product?.description,
+                        hasBookDetails: product?.bookDetails != null,
                       ),
                       SizedBox(height: 45),
                       if (product != null) BooksActionButton(product: product),

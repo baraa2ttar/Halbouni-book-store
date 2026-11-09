@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../cart/presentation/manager/cart_cubit/cart_cubit.dart';
 import '../../../../../core/exports/ui_exports.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../domain/entities/product_entity.dart';
 
@@ -16,7 +17,7 @@ class BooksActionButton extends StatelessWidget {
       children: [
         Expanded(
           child: CustomButton(
-            text: "\$${product.price.toStringAsFixed(2)}",
+            text: formatSyp(product.price),
             backgroundColor: Colors.black,
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(16),bottomLeft: Radius.circular(16)),
             textColor: Colors.white,

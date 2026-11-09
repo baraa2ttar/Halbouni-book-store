@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/exports/main_exports.dart';
 import '../../../../../core/exports/ui_exports.dart';
+import '../../../../../core/widgets/retry_button.dart';
 import 'custom_detailed_book_item.dart';
 
 class CustomDetailedBookBuilder extends StatelessWidget {
@@ -24,6 +25,15 @@ class CustomDetailedBookBuilder extends StatelessWidget {
                 child: CustomDetailedBookItem(product: books[index]),
               );
             },
+          );
+        }
+        if (state is NewestBooksFailure) {
+          final cubit = context.read<NewestBooksCubit>();
+          return Center(
+            child: RetryButton(
+              onRetry: () =>
+                  cubit.fetchNewestBooks(categoryId: cubit.activeCategoryId),
+            ),
           );
         }
         return const SizedBox.shrink();

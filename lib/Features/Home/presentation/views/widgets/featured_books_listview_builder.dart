@@ -2,6 +2,7 @@ import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/feat
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/exports/main_exports.dart';
+import '../../../../../core/widgets/retry_button.dart';
 import 'featured_list_view.dart';
 
 class FeaturedBooksListViewBlocBuilder extends StatelessWidget {
@@ -24,8 +25,11 @@ class FeaturedBooksListViewBlocBuilder extends StatelessWidget {
                     ),
           );
         }
-        else if (state is FeaturedBooksFailure){
-          return Text(state.message);
+        else if (state is FeaturedBooksFailure) {
+          return RetryButton(
+            onRetry: () =>
+                context.read<FeaturedBooksCubit>().fetchFeaturedBooks(),
+          );
         }
         else {
           return SizedBox(
