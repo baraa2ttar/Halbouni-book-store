@@ -4,6 +4,7 @@ import 'package:adv/Features/cart/data/models/cart_item_model.dart';
 import 'package:adv/Features/cart/presentation/manager/cart_cubit/cart_cubit.dart';
 import 'package:adv/Features/orders/presentation/manager/checkout_cubit/checkout_cubit.dart';
 import 'package:adv/core/exports/ui_exports.dart';
+import 'package:adv/core/utils/currency_formatter.dart';
 import 'package:adv/core/routing/app_router.dart';
 import 'package:adv/core/widgets/custom_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -377,7 +378,7 @@ class _AmountRow extends StatelessWidget {
               : AppTextStyles.textStyle14.copyWith(color: AppColor.darkGreyColor),
         ),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          formatSyp(value),
           style: emphasize
               ? AppTextStyles.textStyle16.copyWith(
                   fontWeight: FontWeight.w800,
@@ -413,7 +414,7 @@ class _OrderLineItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Qty: ${item.quantity} × \$${item.price.toStringAsFixed(2)}',
+                  'Qty: ${item.quantity} × ${formatSyp(item.price)}',
                   style: TextStyle(
                     color: AppColor.darkGreyColor,
                     fontSize: context.fs(13),
@@ -423,7 +424,7 @@ class _OrderLineItem extends StatelessWidget {
             ),
           ),
           Text(
-            '\$${lineTotal.toStringAsFixed(2)}',
+            formatSyp(lineTotal),
             style: AppTextStyles.textStyle16.copyWith(fontWeight: FontWeight.w600),
           ),
         ],

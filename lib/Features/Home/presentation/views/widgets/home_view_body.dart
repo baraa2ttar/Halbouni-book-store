@@ -1,48 +1,59 @@
 import 'package:adv/Features/Home/domain/entities/category_entity.dart';
+import 'package:adv/Features/Home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:adv/Features/Home/presentation/manager/newest_books_cubit/newest_books_cubit.dart';
 import 'package:adv/core/exports/ui_exports.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'custom_app_bar.dart';
-import 'custom_detailed_book_builder.dart';
 import 'featured_books_listview_builder.dart';
+import 'newest_books_sliver.dart';
 
 class HomeViewBody extends StatelessWidget {
   const HomeViewBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: const CustomAppBar(),
-              ),
-              FeaturedBooksListViewBlocBuilder(),
-              const SizedBox(height: 40),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Text(
-                  "Best Seller ",
-                  style: AppTextStyles.titleText(context),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final newest = context.read<NewestBooksCubit>();
+        // Reload both lists concurrently and keep the selected category chip
+        // (refresh in place skips the loading flash when data already exists).
+        await Future.wait([
+          context.read<FeaturedBooksCubit>().fetchFeaturedBooks(refresh: true),
+          newest.fetchNewestBooks(
+            categoryId: newest.activeCategoryId,
+            refresh: true,
+          ),
+        ]);
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: const CustomAppBar(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              _CategoryChips(),
-              const SizedBox(height: 16),
-            ],
+                FeaturedBooksListViewBlocBuilder(),
+                const SizedBox(height: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Text(
+                    "Best Seller ",
+                    style: AppTextStyles.titleText(context),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _CategoryChips(),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
-        ),
-        SliverFillRemaining(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: CustomDetailedBookBuilder(),
-          ),
-        ),
-      ],
+          NewestBooksSliver(),
+        ],
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constant/app_assets.dart';
 import '../../../../core/constant/app_text_styles.dart';
 import '../../../../core/exports/main_exports.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../data/models/cart_item_model.dart';
 import '../manager/cart_cubit/cart_cubit.dart';
@@ -166,7 +167,7 @@ class _CartItemCard extends StatelessWidget {
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  '\$${item.price.toStringAsFixed(2)}',
+                  formatSyp(item.price),
                   style: AppTextStyles.textStyle14.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColor.primaryColor,
@@ -264,7 +265,7 @@ class _OrderSummaryCard extends StatelessWidget {
           const SizedBox(height: 10),
           _SummaryRow(
             label: 'Subtotal',
-            value: '\$${subtotal.toStringAsFixed(2)}',
+            value: formatSyp(subtotal),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -272,7 +273,7 @@ class _OrderSummaryCard extends StatelessWidget {
           ),
           _SummaryRow(
             label: 'TOTAL',
-            value: '\$${subtotal.toStringAsFixed(2)}',
+            value: formatSyp(subtotal),
             emphasize: true,
           ),
         ],

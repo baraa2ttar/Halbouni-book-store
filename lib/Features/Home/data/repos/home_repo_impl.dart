@@ -116,6 +116,8 @@ class HomeRepoImpl extends HomeRepo {
           .select('*, categories(name), book_details(*)')
           .eq('is_active', true)
           .ilike('name', pattern)
+          .order('name', ascending: true)
+          .order('id', ascending: true)
           .limit(50);
 
       final products = (data as List)

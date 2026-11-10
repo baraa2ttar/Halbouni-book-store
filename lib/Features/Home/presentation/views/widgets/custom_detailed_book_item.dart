@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../core/exports/main_exports.dart';
 import '../../../../../core/exports/ui_exports.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../domain/entities/product_entity.dart';
-import 'rating_widget.dart';
 
 class CustomDetailedBookItem extends StatelessWidget {
   const CustomDetailedBookItem({super.key, required this.product});
@@ -28,13 +28,23 @@ class CustomDetailedBookItem extends StatelessWidget {
               aspectRatio: 2.5 / 4,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: product.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  errorWidget: (context, url, error) =>
-                      Image.asset(AppAssets.book3, fit: BoxFit.cover),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final dpr = MediaQuery.of(context).devicePixelRatio;
+                    final width = constraints.maxWidth;
+                    return CachedNetworkImage(
+                      imageUrl: product.imageUrl,
+                      fit: BoxFit.cover,
+                      memCacheWidth: width.isFinite && width > 0
+                          ? (width * dpr).round()
+                          : null,
+                      placeholder: (context, url) =>
+                          const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                      errorWidget: (context, url, error) =>
+                          Image.asset(AppAssets.book3, fit: BoxFit.cover),
+                    );
+                  },
                 ),
               ),
             ),
@@ -63,16 +73,11 @@ class CustomDetailedBookItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$${product.price.toStringAsFixed(2)}',
+                        formatSyp(product.price),
                         style: AppTextStyles.textStyle20.copyWith(
                           fontWeight: FontWeight.bold,
                           fontFamily: kGtSectraFine,
                         ),
-                      ),
-                      SizedBox(height: 18,),
-                      RatingWidget(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        rating: product.rating ?? 0,
                       ),
                     ],
                   ),

@@ -27,10 +27,18 @@ class NewestBooksCubit extends Cubit<NewestBooksState> {
   String? get activeCategoryId => _activeCategoryId;
   List<CategoryEntity> get categories => _categories;
 
-  Future<void> fetchNewestBooks({String? categoryId}) async {
+  Future<void> fetchNewestBooks({String? categoryId, bool refresh = false}) async {
     final requestId = ++_requestId;
     _activeCategoryId = categoryId;
-    emit(NewestBooksLoading());
+
+    // Refresh in place: keep the current list visible instead of flashing a
+    // loading spinner. Only when we already have data to show.
+    final hasData = state is NewestBooksSuccess &&
+        (state as NewestBooksSuccess).books.isNotEmpty;
+
+    if (!(refresh && hasData)) {
+      emit(NewestBooksLoading());
+    }
 
     // Load categories once (non-blocking); reused across requests.
     final categoriesFuture = _loadCategoriesOnce();

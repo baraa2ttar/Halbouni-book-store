@@ -14,13 +14,25 @@ class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
   bool _hasReachedMax = false;
   final List<ProductEntity> _books = [];
 
-  Future<void> fetchFeaturedBooks({bool loadMore = false}) async {
+  Future<void> fetchFeaturedBooks({
+    bool loadMore = false,
+    bool refresh = false,
+  }) async {
     if (_isFetching) return;
     if (loadMore && _hasReachedMax) return;
 
     _isFetching = true;
 
-    if (!loadMore) {
+    // Refresh in place: keep the current list visible instead of flashing a
+    // loading spinner. Only when we already have data to show.
+    final hasData = state is FeaturedBooksSuccess &&
+        (state as FeaturedBooksSuccess).book.isNotEmpty;
+
+    if (refresh && hasData) {
+      _pageNumber = 0;
+      _hasReachedMax = false;
+      // Keep _books shown until the fresh first page arrives.
+    } else if (!loadMore) {
       _pageNumber = 0;
       _hasReachedMax = false;
       _books.clear();
@@ -35,11 +47,18 @@ class FeaturedBooksCubit extends Cubit<FeaturedBooksState> {
       );
     }
 
-    var result = await featuredBooksUseCase.call(_pageNumber);
+    final result = await featuredBooksUseCase.call(_pageNumber);
     result.fold((failure) {
       emit(FeaturedBooksFailure(failure.message));
     }, (books) {
-      if (books.isEmpty) {
+      if (refresh && hasData) {
+        // Swap in the fresh first page, replacing the list kept on screen.
+        _books
+          ..clear()
+          ..addAll(books);
+        _pageNumber = books.isEmpty ? 0 : 1;
+        _hasReachedMax = books.isEmpty;
+      } else if (books.isEmpty) {
         _hasReachedMax = true;
       } else {
         _books.addAll(books);
