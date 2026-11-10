@@ -18,13 +18,23 @@ class CustomListViewItem extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: hasImage
-            ? CachedNetworkImage(
-                imageUrl: image,
-                fit: BoxFit.cover,
-                placeholder: (context, url) =>
-                    const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                errorWidget: (context, url, error) =>
-                    Image.asset(AppAssets.book3, fit: BoxFit.cover),
+            ? LayoutBuilder(
+                builder: (context, constraints) {
+                  final dpr = MediaQuery.of(context).devicePixelRatio;
+                  final width = constraints.maxWidth;
+                  return CachedNetworkImage(
+                    imageUrl: image,
+                    fit: BoxFit.cover,
+                    memCacheWidth: width.isFinite && width > 0
+                        ? (width * dpr).round()
+                        : null,
+                    placeholder: (context, url) =>
+                        const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                    errorWidget: (context, url, error) =>
+                        Image.asset(AppAssets.book3, fit: BoxFit.cover),
+                  );
+                },
               )
             : Image.asset(AppAssets.book3, fit: BoxFit.cover),
       )

@@ -23,4 +23,7 @@ class AppStrings {
   /// Friendly error shown when a list fails to load, with a Retry button.
   static const String retry = 'Retry';
   static const String friendlyError = 'Something went wrong. Please try again.';
+
+  /// Shown when a category has no books yet.
+  static const String noBooksInCategory = 'No books in this category yet';
 }

@@ -28,13 +28,23 @@ class CustomDetailedBookItem extends StatelessWidget {
               aspectRatio: 2.5 / 4,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: product.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  errorWidget: (context, url, error) =>
-                      Image.asset(AppAssets.book3, fit: BoxFit.cover),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final dpr = MediaQuery.of(context).devicePixelRatio;
+                    final width = constraints.maxWidth;
+                    return CachedNetworkImage(
+                      imageUrl: product.imageUrl,
+                      fit: BoxFit.cover,
+                      memCacheWidth: width.isFinite && width > 0
+                          ? (width * dpr).round()
+                          : null,
+                      placeholder: (context, url) =>
+                          const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                      errorWidget: (context, url, error) =>
+                          Image.asset(AppAssets.book3, fit: BoxFit.cover),
+                    );
+                  },
                 ),
               ),
             ),
